@@ -1,0 +1,34 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: EBook - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x804 /fo"Release/EBook.res" /d "NDEBUG" "E:\CB\EBook\EBook.rc"" 
+Creating temporary file "C:\WINDOWS\TEMP\RSP5174.TMP" with contents
+[
+/nologo /subsystem:windows /incremental:no /pdb:"Release/EBook.pdb" /machine:I386 /out:"Release/EBook.exe" 
+.\Release\EBook.obj
+.\Release\EBookDoc.obj
+.\Release\EBookSet.obj
+.\Release\EBookView.obj
+.\Release\FlashDlg.obj
+.\Release\MainFrm.obj
+.\Release\StdAfx.obj
+.\Release\TreeList.obj
+.\Release\EBook.res
+]
+Creating command line "link.exe @C:\WINDOWS\TEMP\RSP5174.TMP"
+<h3>Output Window</h3>
+Compiling resources...
+Linking...
+
+
+
+<h3>Results</h3>
+EBook.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
