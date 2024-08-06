@@ -1,0 +1,6 @@
+This text is stored in the archive at the end of the .exe file.
+The contents of this file was compressed using lzss (compr_lzss).
+This is an compression method which decompresses VERY fast.
+There's also little code is needed to decompress. (look at lzssnone.inc in
+the exeface directory)
+The text was archived using EXEDAT V1.0

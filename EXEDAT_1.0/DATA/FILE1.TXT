@@ -1,0 +1,3 @@
+This text is stored in the archive at the end of the .exe file.
+The contents of this file is not compressed (compr_none).
+The text was archived using EXEDAT V1.0

@@ -1,0 +1,9 @@
+
+Notice that you can't run 'example.exe' just after compiling 'example.c'.
+You first have to connect the 'test.res' file at the end of 'example.exe'.
+To do this: copy 'example.exe' to the connect directory, and also copy the
+'data\test.res' to this directory.
+Then use:
+  CONNECT example.exe test.res
+
+After this, you can run example.exe

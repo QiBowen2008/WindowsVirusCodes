@@ -1,0 +1,6 @@
+This text is stored in the archive at the end of the .exe file.
+The contents of this file was compressed using lzari (compr_lzari).
+This is a good compression method. At least, it's better than lzss.
+On the other hand, decompression is slower, and more code is needed to
+decompress.
+The text was archived using EXEDAT V1.0

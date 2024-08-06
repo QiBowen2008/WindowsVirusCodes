@@ -1,0 +1,31 @@
+[DSP upload]
+Filename=Excel.zip
+Replacements=
+Version=1.00
+FileURL=
+Description=Units for creating excel or lotus 123 files.
+Delphi 1.0=Y
+Delphi 2.0=Y
+Delphi 3.0=Y
+Delphi 4.0=Y
+C++Builder 1.0=Y
+C++Builder 3.0=Y
+File Status=Freeware
+Full Source=Included
+Category=
+Note=UsaveXLS need to be improved, u123 is working well but it is Lotus not Excel file.
+Additional info=I would be pleased to have help for improving the UsaveXLS unit.
+
+[DSP Support]
+DSP Support=N
+
+[Versions available]
+Delphi 1.0=
+Delphi 2.0=
+Delphi 3.0=
+C++Builder 1.0=
+
+[Uploader]
+Author name=Makowski Philippe
+Author E-mail=PMakowski@a6cmo.fr
+Author URL=http://www.globenet.org/enfant
