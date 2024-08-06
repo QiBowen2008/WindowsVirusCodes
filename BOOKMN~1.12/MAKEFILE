@@ -1,0 +1,65 @@
+###########################################################################
+# Linux Makefile for Disk Convex Hull
+###########################################################################
+# -s  : linking time option - strip symbols from executable
+# -g  : debug information 
+# -pg : Add profile code
+###########################################################################
+.PHONY : kitit 
+
+
+#ZIPFILE := bookmng_$(shell ./datestr).zip
+ZIPFILE := bookmng_$(shell ./cat_ver).zip
+TGZFILE := bookmng_$(shell ./cat_ver).tgz
+DIRNAME := bookmng_$(shell ./cat_ver)
+
+EXEC=bookmng
+
+PG=-g
+PLATFORM=
+
+
+INCLUDE_DIR =
+COMP_OPT =$(PG) $(INCLUDE_DIR) $(PLATFORM) -Wall # -fullwarn
+LINK_OPT =  $(PG) #-Wl,-woff,131
+LIBS = $(PG) $(LIBPATH)
+SRCS = bookmng.C Tree.C Misc.C treepath.C
+_OBJS = bookmng.o Tree.o Misc.o treepath.o
+OBJS = $(_OBJS)  
+
+CC = g++
+
+DBG = 
+
+all: $(EXEC)
+#	echo $(ZIPFILE)
+
+.C.o:
+	$(CC) $(COMP_OPT) -c $(DBG) $*.C 
+
+
+$(EXEC): $(OBJS)
+	$(CC) $(LINK_OPT) -o $(EXEC) $(OBJS) $(LINK_OPT) $(DBG) $(LIBS)
+
+
+install: $(EXEC) 
+	chmod 755 $(EXEC)
+	cp $(EXEC) /usr/local/bin
+
+kitit:
+	rm -f $(EXEC) $(ZIPFILE) $(TGZFILE) *.o core *~ *~
+	mkdir $(DIRNAME)
+	cp *.C *.h Makefile prefix.html *.cfg README cat_ver $(DIRNAME)
+	zip $(ZIPFILE) $(DIRNAME)/*
+	tar zcf $(TGZFILE) $(DIRNAME)/*
+	rm -r -f $(DIRNAME)
+	echo Files $(ZIPFILE)  $(TGZFILE) created.
+
+clean:
+	rm -f $(EXEC) *.o core *~ *~
+
+
+depend:
+	makedepend -- $(CFLAGS) -- $(SRCS)
+
+# DO NOT DELETE THIS LINE -- make  depend  depends  on it

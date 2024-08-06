@@ -1,0 +1,975 @@
+.\" Copyright (C) 1999 Jose M. Vidal
+.\" 
+.\" Permission is granted to any individual or institution to use, copy, or
+.\" redistribute this software so long as all of the original files are
+.\" included, that it is not sold for profit, and that this copyright notice
+.\" is retained.
+.\" http://bk2site.sourceforge.net
+.\" bk2site-dev@lists.sourceforge.net
+.\" groff -man -Tascii bk2site.1
+.\"
+.de EX		\"Begin example
+.ne 5
+.if n .sp 1
+.if t .sp .5
+.nf
+.in +.5i
+..
+.de EE
+.fi
+.in -.5i
+.if n .sp 1
+.if t .sp .5
+..
+.ta .3i .6i .9i 1.2i 1.5i 1.8i
+.TH bk2site 1 "19 January 2000"
+.SH NAME 
+bk2site \- convert a Netscape Navigator bookmark file into a yahoo-like website with slashdot-like news.
+.SH SYNOPSIS
+.B bk2site [-nd] [-f 
+.I config-file
+.B ] [-d
+.I dest-dir
+.B ] [-t
+.I name
+.B ] [-f1
+.I basetemplate
+.B ] [-f1
+.I othertemplate
+.B ] [-o
+.I outputfile
+.B ] 
+.B ] [-xbel
+.I outputfile
+.B ][-ns] [-nc] [-old
+.I days
+.B ] [--help] [
+.I mainbookmarkfile
+.B ] [
+.I bookmarkfile
+.B ...]
+.SH DESCRIPTION
+Converts a Netscape Navigator bookmark file into a yahoo-like website
+with slashdot-like news. It is typically run as a cron job so as to
+keep your website automatically updated. Customization is achieved
+thru the template files and the .bk2siterc file, as explained
+below. All the options can also be given in the .bk2siterc file.
+.SH OPTIONS
+.IP -n
+Don't use a subdirectory hierachy. Use ugly long filenames. This
+option is useful for tree depth limited providers like geocities.
+.IP "-f config-file"
+Use the configuration file
+.I config-file
+instead of
+.IR ~/.bk2siterc
+and
+.IR /etc/bk2site/dot.bk2siterc .
+.IP "-d dest-dir"
+Local directory for generated files.  Default is /home/httpd/html/ or
+as given in
+.IR /etc/bk2site/dot.bk2siterc
+and 
+.IR ~/.bk2siterc 
+.IP "-t name" 
+Name of top-level bookmark folder to use. If ommited bk2site will
+convert whole bookmark file.
+.IP "-f1 basetemplate" 
+Index template file for top index.  
+.IP "-f2 othertemplate"
+Template for the other pages. 
+.IP "-o outputfile"
+Output bookmark file. All the bookmarks that form the website are
+output to this file in Netscape bookmark file format.
+.IP "-xbel outputfile"
+Output bookmark file in XML Bookmarks Exchange Language (XBEL).
+All the bookmarks that form the website are output to this file.
+.IP -ns
+Do NOT generate the website. This is useful if you just want to
+generate the bookmarkfile or some other files, as specified in
+~/.bk2siterc.
+.IP -nc
+Do NOT put HTML comments in the output.
+.IP "-old days"
+Number of days (default is 30) after which a bookmark is no longer
+new.
+
+.SH FILES
+.I /etc/bk2site/dot.bk2siterc
+.RS
+The system configuration file. It is always read first.
+.RE
+.I ~/.bk2siterc
+.RS
+The user configuration file. It is read after the global configuration 
+file and before the one specified in the -f argument. Values set later 
+always override previously set values. That is, the user configuration 
+file overrides values set in the globla configuration file.
+
+.SH Quick Start
+The minimum 
+.I ~/.bk2siterc 
+you will need, if you run your own webserver with files in
+/home/http/html (as is the default in most distributions) is:
+.EX
+destdir /home/httpd/html
+search /home/httpd/cgi-bin/urls.db
+extrafilebase /etc/bk2site/newbase.html
+extrafilename new.html
+.EE
+
+.SH SUMMARY
+bk2site simply reads your bookmarks file and generates a bunch of
+files which form a yahoo-like site, with the option of using one of
+your folders to generate a set of slashdot-like news.
+
+In order to customize its output, you need to set up (at least)
+three files.
+.I indexbase.html
+.I otherbase.html
+and your own 
+.I ~/.bk2siterc.
+Samples of these three files are included with the distribution and
+should be found under /etc/bk2site or /usr/doc/bk2site.
+
+.IP indexbase.html 
+This file forms the template for your top-level
+index. That is, the page everyone will see first. This file must be a
+legal html file and contain the comments as described below.
+
+.IP otherbase.html
+It is the template for all the other files. It also needs to have
+comments, as described below.
+
+.IP ~/.bk2siterc.
+Edit the 
+.I /etc/bk2site/dot.bk2siterc 
+file and copy it to
+.I ~/.bk2siterc
+The sample file has lots of comments, so read it. Also,
+a sample
+.I ~/.bk2siterc
+is given at the end of this manual page. This file tells
+bk2site where to find indexbase.html and otherbase.html
+.PP
+There can also be extra configuration files if you wish to generate
+extra output (for example, you might wish to generate an xml file to
+be read by MyNetscape.com, or a plain text file to be used in an
+automate monthly newsletter). The extra template files are given with
+the "extrafilebase" and "extrafilename" variables in your
+.I ~/.bk2siterc
+
+Basically, bk2site supports 5 different sections in your document. 
+Each section refers to the type of URLS that will be output by bk2site 
+at that point. They are:
+.IP folder
+folders from your bookmarkfile
+.IP url
+urls (leafs) from your bookmarkfile
+.IP newadd
+urls of the most recently, sorted by most-recently-created
+.IP news
+urls from the newstopfolder, sorted by most-recently-created.
+.IP tophits
+urls with the most hits, sorted by number of hits (as given by urllog)
+.IP newsandnewadd
+combines the urls in news and newadd and sorts them by most-recently-created.
+.PP
+Each section is replaced by bk2site with the appropiate urls. For
+example, the folder section is replaced with the URLs for the
+appropiate folders, while the url section is replaced by the leaf
+urls. Exactly how these URLs will look depends on the values you give
+to the different variables within each section.
+
+The easiest way to understand how it works is to look at at the sample
+files. Lets look at the folders (in Yahoo! these are known as the
+"categories"). In the sample otherbase.html you will find something
+like:
+.EX
+<!--bk2site:begin folder-->
+<!--bk2site:top <table width="100%"><tr><td><ul>-->
+<!--bk2site:template <li><A HREF="%URL"><B>%TITLE</B></A> <I>(%LEAFS)</I> %CONDDASH <small>%COMMENT</small>-->
+<!--bk2site:separator </ul></td><td><ul>-->
+<!--bk2site:bottom </ul></td></tr></table><hr>-->
+<!--bk2site:cols 2-->
+<!--bk2site:maxnum 0-->
+<!--bk2site:end-->
+.EE
+
+These comments guide how bk2site generates the html for the
+folders. Each section must always start with the <!--bk2site:begin
+section-type--> and end with <!--bk2site:end-->. Within each section
+section-type--> there are a number of variables (e.g. top, template,
+section-type--> separator), each one of these variables is followed by 
+section-type--> the value we are assigning to it.
+
+The whole section will be replaced, in the output file, by the code
+generated by bk2site. The section begins with: 
+
+.IP "<!--bk2site:begin folder-->"
+Tells bk2site that this is the place where we want to place the
+folders.
+.PP
+After the begin statemend we see a number of variables, each one is
+assigned a value. The function of each variable is:
+
+.IP top 
+If there are folders to print, print the value of this variable (in
+this case <tablewidth="100%"><tr><td><ul>) before any folders.
+
+.IP template
+Each folder is printed using the template given by the value of this
+variable (in this case <li><A
+HREF="%URL"><B>%TITLE</B></A><I>(%LEAFS)</I> %CONDDASH
+<small>%COMMENT</small>). You can insert many directives, which are
+all in capitals and preceded with a %. These directives will be
+replaced with the appropiate values. All the directives are explained
+below.
+
+.IP cols
+Tells us to print the folders in colums. In this example we are
+setting this value to 2. This simply inserts the value of "separator"
+after the appropiate number of elements.
+
+.IP separator
+After each column is over, we print this separator in order to start
+the next colum.
+
+.IP bottom 
+If there are folders to print, print the value of this
+variable after all folders have been printed.
+
+.IP maxnum
+The maximum number of folders to print. If 0 or ommited, then we print 
+all the folder that exist in the bookmark file.
+
+.IP daysold
+Do not include any folders or urls that were created more than
+15 days ago. If 0 or omitted then we print all folders.
+
+.IP between
+Places the contents of this variable between every two items, but not
+at the beginning or at the end; and not when the separator is being
+printed. This is sometimes useful.
+
+.IP startnum
+This would tell bk2site to start printing on the 15th element.
+.PP
+There are other special comments that can appear anywhere in a
+template file and do not need to be within a section. They will be
+replaced. In their place bk2site will put some appropiate HTML code.
+
+.IP "<!--bk2site:navigatebar-->"
+Gets replaced by the navigation
+bar. This is only useful in otherbase.html. This is not a variable and 
+should not be set to any value. 
+
+.IP "<!--bk2site:title-->"
+Gets replaced by the title (current folder
+name), prepended by the "title" defined in .bk2siterc.
+
+.IP "<!--bk2site:include /home/me/myfile.html-->"
+Includes myfile.html at
+the place where the comment is placed. myfile.html can itself include
+any of the tags. It eliminates any occurances of %QUERY, %ESCQUERY and
+%NUMBER in the included file. Its a great way to include headers and
+%footers that are common to all your pages. Also, instead of a file
+you can also specify a URL.
+
+.IP "<!--bk2site:include:search /home/me/myfile.html-->" 
+As above, but
+leaves %QUERY, %ESCQUERY and %NUMBER. Also, instead of a file
+you can also specify a URL.
+
+.IP "<!--bk2site:date-->"
+Gets replaced by the current date and time.
+
+.IP "<!--bk2site:path-->"
+Gets replaced by the path to the current file being written. This
+is only useful in otherbase base pages since the path we are talking
+about is just the path that bk2site creates to mirror your folder structure.
+That is, it is NOT the absolute path on your filesystem, it is only
+the set of directories that must be traversed from the top of the
+tree in order to get to the current page. This comment is useful when
+you need to reference the page you are on. (e.g. asking google to find
+other pages related to that one.)
+
+.PP
+You can get sample copies of base files, showing how all these ugly
+comment can be used, at the bk2site homepage
+http://bk2site.sourceforge.net
+
+.SH Directives
+These are replaced for their appropiate values when they appear in a
+template. They get instantiated for each url or folder.
+
+.IP %URL
+the URL
+.IP %NOACCENTURL
+the URL where all accented, and other strange characters, have been
+replaced by equivalent values.
+.IP %TITLE
+the title
+.IP %NOACCENTTITLE
+the title where all accented, and other strange characters, have been
+replaced by equivalent values.
+.IP %COMMENT
+the comment,
+.IP %FILLCOMMENT
+the comment, its justified for 80 columns, to make it look nice.
+.IP %NOACCENTCOMMENT
+the comment where all accented, and other strange characters, have been
+replaced by equivalent values.
+.IP %SHORTCOMMENT(x)
+the first x characters of the comment, where x is an integer.
+.IP %LONGCOMMENT
+the comment in one long line with any carriage-returns or newlines
+removed.
+.IP %NHCOMMENT 
+the comment but with everything between < and > stripped out
+that is, all the HTML stripped out (No HTML Comment). Also on 80 columns.
+.IP %FSCOMMENT
+the first sentence of the comment, that is, everything up to the
+first period. A single letter with a period will be skipped. If there is
+no period then the whole comment.
+.IP %JSCOMMENT
+the comment but with the appropiate characters escaped so that it can
+be used as a JavaScript string.
+.IP %JSFSCOMMENT
+the first sentence of the comment, that is, everything up to the
+first period. A single letter with a period will be skipped. If there is
+no period then the whole comment. Special characters are escaped so that
+the comment can be used as a JavaScript string.
+.IP %DAYCRE
+the day created
+.IP %DAYVIS
+the day last visited
+.IP %DAYMODM
+the day last Modified
+.IP %MONTHCRE1
+the month created, in number
+.IP %MONTHCRE2
+the month created, in English
+.IP  %MONTHVIS1
+the month visited, in number
+.IP %MONTHVIS2
+the month visited, in English
+.IP %MONTHMOD1
+the month modified, in number
+.IP %MONTHMOD2
+the month modified, in English
+.IP %YEARCRE
+last two digits of the year created
+.IP %YEARFCRE
+the year created, including all digits (the full number).
+.IP %YEARVIS
+last two digits of the year visited
+.IP %YEARFVIS
+the year visited, including all digits (the full number).
+.IP %YEARFMOD
+last two digits of the year modified
+.IP %YEARMOD
+the year modified, including all digits (the full number).
+.IP %LEAFS
+the total number of leafs under it (for folders only)
+.IP %NEW
+the new.gif, if the time is right.
+.IP %TIMEFCRE
+the time created in full Wed Jun 30 21:49:03 1993
+.IP %TIMEFMOD
+the time modified in full Wed Jun 30 21:49:03 1993
+.IP %TIMEFVIS
+the time visited in full Wed Jun 30 21:49:03 1993
+.IP %CONDDASH
+prints a dash "-" if the comment is not null
+.IP %IFCOMHAS(string)(html)
+if the comment has "string" then insert "html" at point.
+also eliminate "string" from comment.
+e.g. %IFCOMHAS(*coolsite*)(<img src="/images/cool.gif">)   or
+%IFCOMHAS(-neat-)(<font color="red">Neat Site</font>)
+If you use it, you must use it for ALL templates
+.IP %HITS
+the number of hits this url has receives, as gathered from urllogfile
+.PP
+There are also functions you can use. Right now, these functions
+are NOT available for search.pl so you should not use them in
+your searchurltemplate variable in your .bk2siterc. 
+
+Each function takes one or more arguments and gets replaced by the
+results of applying that function to the given arguments. The function are:
+
+.IP &FILL[arg|cols]
+where arg is a string and cols is an integer. This function auto-fills
+the given argument to cols columns. e.g. &FILL[%COMMENT].
+.IP &NOHTML[arg]
+where arg is a string. Gets rid of all the HTML in the argument. That is,
+everything between < and >.
+.IP &REPLACE[arg|from|to]
+where arg, from, and to are strings. It replaces all instances of 
+"from" with "to" in "arg".
+.IP &CUT[arg|chars]
+where arg is a string and chars is an integer. It returns the first
+"chars" characters in "arg".
+.IP &NOLINEBREAKS[arg]
+where arg is a string. It replaces all newlines, returns and tabs
+with spaces, in arg.
+.IP &NOACCENTS[arg]
+where arg is a string. It replaces all accented characters with their
+non-accented counterparts. It also gets rid of other troublesome
+characters.
+.IP &FS[arg]
+where arg is a string. It returns the first sentence in arg.
+.PP
+
+These functions can be nested, as in &CUT[&NOHTML[%COMMENT]|500]. The
+strings used as arguments to these functions cannot include the characters
+[, ], or | since that will confuse the parser.
+
+.SH Netscape Navigator Comments
+As you know, navigator allows you to give comments to bookmars and
+folders. We use these to guide the behavior of bk2site (see below and
+read dot.bk2siterc, esp %IFCOMHAS) and we also print them.
+
+You can also use HTML in the comment and it will work, but:
+
+*********WARNING********************WARNING***********
+
+DO NOT PUT "HREF=" IN YOUR COMMENT. There is a bug in Navigator that
+will make it mungle your bookmarks if you do that. The bug has been
+reported. 
+
+If you must, use "HREF =". The space is VERY important. I actually
+like to use "href =". The use of lowercase and a space makes me feel
+doubly safe.
+
+*********WARNING********************WARNING***********
+
+.SH Using Aliases
+bk2site supports url aliases, as used by navigator. 
+
+It also implements directory aliases. Since Navigator does not allow
+us to create an alias for a folder/directory, we must do it with a
+little hack.
+
+Say you have a folder called "people" and you want to put an alias to
+it somewhere else. You should go to where you want the alias to appear 
+and create an empty folder called "people", then add the comment ALIAS
+in the comment box for that folder.
+
+That's it, the empty folder "people" will now appear with an @ at the
+end of it (in the website) and will point to the real "people"
+folder. You can have as many ALIAS folders as you want, pointing to
+the same or different folders.
+
+There's also support for directory aliases where the ALIAS name is
+different from the real folder. So if you have a folder called
+"robots" as a subfolder of your "Business" folder and you want to put an
+alias to it called "Commercial" into your "AI" / "robotics" folder,
+go to "robotics", create an empty folder called "Commercial", and finally
+add the comment "ALIAS robots" in the comment box for that folder.
+
+.SH Setting Private Folders
+If there is a particular entry or folder that you want bk2site to
+ignore simply give it the comment PRIVATE. The comment must be all
+in capital letters and must be the only text on the comment field.
+
+.SH Sorting Bookmarks
+You can also have bk2site automatically sort the bookmarks in a
+folder. This is done by adding the appropiate comments to the
+folder. The valid values are:
+
+.IP "sort title normal"
+sorts based on title, alphabetically.
+.IP "sort title inverse"
+in inverse alphabetical on title.
+.IP "sort creation normal"
+Sort based on the time when the bookmark was
+created. The more recent ones come first.
+.IP "sort creation inverse"
+more recent come last.
+.IP "sort modified normal"
+Sort based on the time when the bookmark was
+last modified. The more recent ones come
+first.
+.IP "sort modified inverse"
+more recent come last.
+.IP "sort visit normal"
+Sort based on the time when the bookmark was
+last visited. The more recent ones come
+first.
+.IP "sort visit inverse"
+more recent come last.
+.IP "sort hits normal"
+Sort based on the number of hits, as determined
+by reading the urllog file. The ones with more hits
+come first
+.IP "sort hits inverse"
+Less hits come first.
+.PP
+
+These comments are case-insensitive.
+
+Remember that the folders only have a title and a creation date, so
+sorting them on visit or modified will not do anything to them.
+
+.SH Output of Bookmark file
+
+You can use the -o switch, or the "outputbookmarkfile" variable in
+.bk2siterc, to tell bk2site to output a bookmark file that contains
+only the bookmarks that are shown on the website. That is, it excludes
+those that were not under the main folder and those that where under
+PRIVATE folders. For example
+.EX
+bk2site -o /tmp/published-bookmarks.html
+.EE
+will write out to /tmp/published-bookmarks.html. This is useful if you
+want to give someone else a bookmark file containing only your public
+bookmarks. Netscape can read these bookmark files.
+
+The -ns switch prevents bk2site from actually generating a website. It
+is useful when you just want to generate the output bookmarkfile
+without creating a website:
+.EX
+bk2site -ns -o /tmp/published-bookmarks.html 
+  bookmarkfile1.html file2.html file3.html
+.EE
+There are a couple of problems with this output. bk2site will (1) Ignore
+any <HR> in the original. (2) Replace all <BR> with a space (they are
+there, trust me).  (3) Get rid of "sort" comments, instead the
+bookmarks will be sorted with the appropiate order.
+
+.SH Merging Bookmark Files
+
+bk2site can merge several bookmark files. For example:
+.EX
+bk2siste -o /tmp/merged-bookmarks.html 
+  ~/.netscape/bookmarks.html /home/joe/.netscape/bookmarks.html
+.EE
+will merge your bookmarks (~/.netscape/bookmarks.html)
+with  Joe's (/home/joe/.netscape/bookmarks.html)
+
+In order for this to happen, Joe's bookmarks must have some folders
+with the comment PUBLISH on them. Each one of these folders will be
+matched (using its name) with a folder on your bookmark file. The two
+folders, along with any subfolders, will be merged. If Joe has extra
+subfolders, they will be created and added.
+
+If a new bookmark has the same (identical) URL as one already in that
+folder, it will be ignored.
+
+The new bookmarks are added at the end of the folder. If you want to
+change the order, use the sort commands above.
+
+This technique works fine if you and Joe are coordinating---Joe must
+place the PUBLISH comments in the appropiate folders. But, what if you
+downloaded a bookmarks.html file from the web and want to add it, as
+is, to your site. This can be accomplished with the INCLUDE keyword.
+
+You simply create a folder where you want to include the new
+bookmarfile, and give it the comment:
+.EX
+INCLUDE /tmp/filename.html
+.EE
+or you can use a url like
+.EX
+INCLUDE http://www.multiagent.com/multiagent-bookmarks.html
+.EE
+The file will be read and merged under that folder. Since they are
+merged, you can also add your own bookmarks under the folder.
+
+To summarize: Merging can be done either by:
+
+1- Specifying many files on the command line. The first one is the
+root bookmark file, the rest of them must have folders marked
+"PUBLISH", which will be merged with the folders on the root bookmark
+file with the same name.
+
+2- Including the comment "INCLUDE url" in some of your folders,
+where url is the name of some other bookmark file to include
+under that folder. You can also add your own bookmarks under this
+folder.
+
+.SH Generating extra files.
+If you want to generate more files, for example, a file just the
+tophits or just the new additions, this can be done using the
+"extrafilebase" and "extrafilename" variables in your .bk2siterc. 
+
+.IP "extrafilebase"
+The base file for an extra file you wish to generate.
+.IP "extrafilename" 
+The name of the output file.
+.PP
+
+These two variables need to appear in pairs and in order, for example: 
+.EX
+extrafilebase	/etc/bk2site/newbase.html
+extrafilename	new.html
+.EE
+This means that the base file is newbase.html and the output file
+generated by processing this base file will be written to
+new.html. Note that the files you create need not be html. In fact,
+this feature can be used to generate any kind of text file
+(e.g. my.netscape channels, email newsletters, etc.). 
+
+.SH Displaying channels
+
+[For the uninitated, channels are simply xml files that summarize a
+site's contents. Many popular news sites like slashdot and freshmeat
+make these available for anyone to download and use, as long as you
+give them proper credit. Please read and obey each individual site's
+use restrictions for their content.]
+
+Another fun feature is to read and display other people's my.netscape
+channels in your pages. This can be done by first setting three
+variables in your .bk2siterc for each channel that you whish to
+show. The variables are.
+
+.IP "channelname"
+The name you will use to refer to this channel. Pick something you can 
+remember.
+.IP "channelurl"
+The url where we can download this channel. bk2site only supports
+http: and file: methods. ftp will have to wait.
+.IP "channelfile"
+A file to which we write the channel we just read. Also, if the
+channel cannot be downloaded from the url, bk2site will read this file 
+instead. This way you avoid having empty channels in your pages.
+.PP
+
+For example, to set up a slashdot channel you would do:
+.EX
+channelname slashdot
+channelurl http://slashdot.org/slashdot.rdf
+channelfile /tmp/slashdot-channel
+.EE
+
+Now, this sets up the channel but it does not display it. In order to
+display the channel you must define a section like the ones we used
+before but using the channel name instead of a section name. For
+example, to display the slashdot channel you would place the following
+in one (or more) of your base files:
+.EX
+<!--bk2site:begin slashdot-->
+<!--bk2site:top <a href="http://www.slashdot.org">Slashdot News</a><ul>-->
+<!--bk2site:bottom </ul>-->
+<!--bk2site:template <li><A HREF="%URL">%TITLE</A> %CONDDASH %COMMENT-->
+<!--bk2site:cols 1-->
+<!--bk2site:maxnum 10-->
+<!--bk2site:end-->
+.EE
+Notice that since the channel files contain less information than
+bookmark files, the only tags you can use in your channel template are
+%TITLE, %URL, %COMMENT, %CONDDASH, and %HITS. Using the others will
+%have unpredictable results.
+
+.SH Dealing with other character sets
+
+If you do not use the ASCII character set, or use some of those accented
+characters, you might find that you need to use %NOACCENTURL instead
+of %URL. You might also want to place the comment DIRNAME followed by
+a folder name, e.g. DIRNAME myasciifoldername, when the title of your folder
+contains characters that do not make for good folder names. The folder
+will instead be given the name you gave it.
+
+If you do not use DIRNAME, bk2site will transform any non-ascii characters
+into their hex equivalents and use that as the folder name (not very pretty
+but works well as a URL).
+
+
+.SH search.pl program
+
+After you compile the sources you will also find a program called
+"search.pl". This program is a cgi-script which reads a urls.db file
+automatically created by bk2site and returns the number of matches to
+any given query. It takes several arguments:
+.IP q
+The query we want to match. It can be a word or a series of words
+separated with spaces.
+.IP num
+The total number of results to display per page.
+.IP stq 
+The number of the first result to display. This is use for displaying
+the "next 10 results".
+.IP db
+The name of the urls.db file.
+.PP
+
+The program needs to be moved to your cgi-bin directory.
+The cgi-bin dir must have:
+.EX
+search.pl
+urls.db
+searchbase.html
+.EE
+
+You must also edit the program search.pl. The line (near the top):
+.EX
+$searchprog = "/cgi-bin/search.pl"; 
+.EE
+must be changed to point to where you put seach.pl, if different from
+the default value.
+
+.IP urls.db 
+is created automatically by bk2site, see the comments in
+dot.bk2siterc for how to generate it and other info. Notice that the
+default is for this file to NOT be generated. 
+
+.IP searchbase.html 
+could be a copy of the previous otherbase.html, or you
+could make some other cosmetic changes to it. A sample searchbase.html 
+file is included with the distribution. search.pl will use this file
+as a template for its output.
+.PP
+
+The search.pl program will also replace all occurences of %QUERY and
+%NUMBER in searchbase.html, with their appropiate
+values. %ESCQUERY can also be used---it is the same as %QUERY but the
+spaces and other special characters are escaped. See the sample
+searchbase.html for an example of how to use this.
+
+If you use %IFCOMHAS(*cool*)(<img ....), with *cool* or whatever
+name(s) you use (e.g. *lame*, -biz-, etc). You can now do searches on
+this. For example, to have a "Whats cool" link, you do:
+.EX
+<a href="/cgi-bin/search.pl?q=*cool*&num=20">Whats Cool</a>.
+.EE
+
+.SH Counting the Hits
+
+To do this you must first use redirect.pl (or equivalent) to count the 
+number of hits. To do this you must change the templates so that
+redirect.pl gets called with the urls you want to count, and the
+hits are displayed where (and how) you wand them.
+
+A simple exaple of a template is:
+.EX
+<!--bk2site:template
+<A HREF="/cgi-bin/redirect.pl?url=%URL">%TITLE</A> %NEW 
+<font color="red">%HITS</font> %CONDDASH %COMMENT-->
+.EE
+Then set
+.EX
+urllogfile 	/home/httpd/cgi-bin/urllog
+.EE
+to point to the urllog file generated by redirect.pl, and
+.EX
+#Hits older than this many SECONDS 
+# will be ignored and purged from the
+#urlloggile  2592000 = 30days
+hitstimecutoff	2592000
+.EE
+Then you are ready to run bk2site.
+
+bk2site will read the urllog file and then WRITE IT BACK but it will
+NOT WRITE back those hits that are before the hitstimecutoff.
+.SH "SAMPLE ~/.bk2siterc"
+.EX
+# Sample .bk2siterc by Jose M. Vidal
+#
+# Multiuser support by Bradley Bell <btb@debian.org>
+#
+# http://bk2site.sourcefore.net
+#
+# This file customizes the behavior of bk2site. bk2site looks 
+# for this file in ~/.bk2siterc. Otherwise, the file can be 
+# given with the -f parameter. Command-line arguments override
+# values set in this file.
+#
+# The format is a variable name followed by a value, with some 
+# whitespace in between. The value has to be ON THE SAME LINE
+# as the variable.
+# I show all the variables available, along with some example 
+# values. Any line that starts with # is a comment.
+#
+# If you use either $HOME or $USER or $LOGNAME they will be 
+# replaced with
+# their values as given by the shell when bk2site is run.
+# For example
+# destdir	$HOME/www
+# sets the destination directory to be www under the user's home.
+# NOTE: if you run bk2site as a cron job, $USER is not defined
+#  (on Linux)
+
+
+# The directory where bk2site places the files.
+#destdir		/home/httpd/html/
+# When testing you might want to set it to
+#destdir         /tmp/
+#on a multiuser system you can use:
+destdir		$HOME/public_html/bk2site/
+
+# This is the HTML that will be placed in place of any %NEW
+#  tags you place in your templates. Typically, this is a gif.
+# Notice that you can use directives here.
+newgif	<img src="/icons/new.gif" alt="Added %MONTHCRE1/%DAYCRE/%YEARCRE">
+
+# You can have bk2site reset the folders' creationtime to
+# be either:
+# maxdescendants --the max of all the urls that are descendants
+#                  of this folder.
+# maxchildren --the max of all the urls that are children of this
+#               folder
+# normal --leave it alone. The creation time is the time you created
+#          the folder
+#You set it to maxdescendants if you want to see the new.gif next
+# to all the folders that contain new urls.
+foldercreation maxdescendants
+
+# The bookmark file you want to use
+#bookmarkfile	/tmp/bookmark.html
+# use the regular netscape bookmarks
+#bookmarkfile	/home/jmvidal/.netscape/bookmarks.html
+# Leaving it blank tells it to use ~/.netscape/bookmarks.html
+bookmarkfile	
+
+# The name of the file we write the published bookmarks to.
+#outputbookmarkfile	/tmp/published-bookmarks.html
+
+
+# The name of the folder you want to publish
+#topfolder	PUBLIC
+# leave it blank if you want all your bookmarks published.
+topfolder
+
+#The title you want to give to your pages
+title	$LOGNAME's bookmarks
+
+#The folder for the news. I needs to be a subfolder of topfolder
+#newstopfolder	News
+#leave empty if you do not want news.
+newstopfolder
+
+#Do you want bk2site to add HTML comments to its output stating
+# where it did the replacements? yes or no
+comments	yes
+
+# The names of the indexbase.html and otherbase.html:
+# use a relative directory (not good if you are using cron)
+# In the RPM version, the sample files are located at /etc/bk2site/
+# 
+indexfilename	/etc/bk2site/indexbase.html
+otherfilename   /etc/bk2site/otherbase.html
+
+# The names of any other filenames you want to create, along with the
+# name of their index files (relative to destdir).
+# For example, if you want an extra file with new additions you say:
+extrafilebase	/etc/bk2site/newbase.html
+extrafilename	new.html
+
+#You can add more pairs, like:
+#extrafilebase	/etc/bk2site/tophitsbase.html
+#extrafilename	tophits.html
+
+# The channels you (might) want to display
+# For each channel you must define three variables
+# first the name you will use to refer to this channel (in the base files)
+#channelname slashdot
+# the url for retrieving it (can be either http: or file:)
+#channelurl http://slashdot.org/slashdot.rdf
+# a filename where we will write a copy of this channel. Also, if the url
+# cannot be read we will try to read the channel from this file.
+#channelfile /tmp/slashdot-channel
+
+#channelname freshmeat
+#channelurl http://freshmeat.net/backend/fm.rdf
+#channelfile /tmp/freshmeat-channel
+
+#channelname multiagent
+#channelurl http://www.multiagent.com/mynetscape.rdf
+#channelfile /tmp/multiagent-channel
+
+#channelname lwn
+#channelurl http://lwn.net/headlines/rss
+#channelfile /tmp/lwn-channel
+
+#You can add as many as you want. Note that extrafilename will pre
+#prepended by whatever you specify in destdir.
+
+# The number of days we leave the new.gif next to a url
+timecutoff	30
+
+# The string to use for the word "Top" which appears in the navigatebar
+top		Top
+# or, in another language
+# top		Cumbre
+
+#the name of your index.html file
+index		index.html
+#or in DOS world
+#index 		index.htm
+
+#The name of the file you will use for the %HITS This file must
+#contain a bunch of times and urls (as generated by
+#redirect.pl, for example).  Leave empty if you don't want this
+#feature. bk2site will read and WRITE to this file.
+#
+urllogfile
+#Note that redirect.pl by default writes to a file called "urllog"
+# that is in the cgi-bin directory. So, typically, you might want:
+#urllogfile /home/httpd/cgi-bin/urllog
+
+#Hits older than this many SECONDS will be ignored and purged from the
+#urlloggile, 2592000 = 30 days
+hitstimecutoff	2592000
+
+#If you want the tophits section to also include the news items (assuming
+# the news folder is under topfolder) then set this variable to "yes".
+#The defaults is "no", which means that the top hits only include directory
+# entries and not news items.
+tophitsincludenews	no
+
+#STUFF BELOW deals with search program
+
+#if you want to generate "urls.db", which is needed by the search program
+# then include here the full path. It needs to reside on the same
+# directory you put the "search" program. The file MUST BE NAMED
+# urls.db
+#search		/home/httpd/cgi-bin/urls.db
+# if you do not want search, just leave it blank
+#search
+#on a multiuser system you can do:
+search 		$HOME/public_html/bk2site/urls.db
+
+#This is the path that takes us from the cgi-bin directory (i.e. the
+#results page) to the root (Top) of your bookmarks.  If your bookmarks
+#reside on / and your search in /cgi-bin/bk2site, then:
+#searchtorootpath ../../ If your Top is in a subdir then
+#searchtorootpath ../subir/ If the search is done on a different
+#machine, then 
+#searchtorootpath http://machinewithbookmarks.org/bookmarks/ 
+#on a multiuser system you can do:
+searchtorootpath	/~$LOGNAME/bk2site/
+
+#The url template to use for the search results. This should probably
+# be the same template you use for the urls in the otherbase.html file.
+# BUT: note that search.pl automatically prepends every url with an <li>
+#searchurltemplate <A HREF="%URL">%TITLE</A> %NEW <font color="red">%HITS</font> <A HREF="http://www.hotbot.com/?clickSrc=search&MT=%URL&SM=url&DC=50"><img src="/icons/closeup.gif" border=0 alt="Who points to it?"></A> %IFCOMHAS(*cool*)(<img src="/images/cool.gif">) %CONDDASH %COMMENT
+searchurltemplate <A HREF="%URL">%TITLE</A> %NEW %CONDDASH %COMMENT
+
+.EE
+
+.SH BUGS
+Too many to mention.
+.SH AUTHOR
+Jose M. Vidal <bk2site-dev@lists.sourceforge.net>
+
+Contributors include:
+
+August Hoerandl - wrote check-meta.pl. added "date" tag.
+
+Bradley Bell - patch to support multiuser setups.
+
+Daniel Barrero - patch for handling flat file systems
+
+Reinier Mostert - patch to handle bookmark aliases.
+
+Oliver Obst - provided the autoconf scripts.
+
+Hannes Faestermann - patch for new.html
+
+David Cancel - cool ideas and code for improving search.pl
+
+The program homepage is at http://bk2site.sourceforge.net
+
+.SH "SEE ALSO"
+.BR netscape (1)

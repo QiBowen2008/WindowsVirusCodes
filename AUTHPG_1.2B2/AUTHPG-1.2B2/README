@@ -1,0 +1,146 @@
+
+                       PostgreSQL Authentication Module
+                                       
+			 Min S. Kim <minskim@bawi.org>
+
+				15 January 2000
+     _________________________________________________________________
+   
+       This document explains how to install and use mod_auth_pg.
+     _________________________________________________________________
+   
+1. Introduction
+
+   PostgreSQL Authentication Module(mod_auth_pg) enables Apache to
+   authenticate users with the information stored in PostgreSQL database.
+   This module gets a username and password pair in the standard way or
+   from a cookie, and you can choose your preferred method.
+   
+2. Requirements
+
+   This module is tested with Apache-1.3.9 and PostgreSQL-6.4.2.
+   
+     * PostgreSQL
+     * Apache HTTP Server
+     * PostgreSQL Authentication Module
+       
+3. Installation
+
+   At first, PostgreSQL should be installed. If you have installed it
+   with rpm, make sure the package postgresql-devel was installed. After
+   the installation of PostgreSQL, find out the path of header files and
+   libraries. This information will be needed when you compile this
+   module.
+   
+   Unzip and untar the module sources into any directory you want.
+   
+    $ tar xvzf AuthPG-1.2b1.tar.gz
+
+   There are two ways to install AuthPG. The one is to make it a DSO
+   module, and the other is to compile it into Apache.
+   
+  3.1 To make AuthPG a DSO module
+  
+   If your Apache binary supports DSO modules, you can use AuthPG as a
+   DSO module without recompile Apache. Open Makefile in the AuthPG
+   directory, and edit the first few lines for it to reflect correct
+   paths of Apache tools (APXS and APACHECTL) and PostgreSQL header files
+   (INC) and library (LIB). Then you can obtain mod_auth_pg.so with make.
+   
+   To add this module to your Apache, consult Apache manuals.
+   
+  3.2 To compile AuthPG into Apache
+  
+   In this way, mod_auth_pg.c will be moved into Apache source directory
+   and compiled.
+   
+   Unzip and untar the Apache sources into any directory you want and
+   move into src directory.
+   
+    $ tar xvzf apache_1.3.9.tar.gz
+    $ cd apache_1.3.9/src
+
+   Now you will edit Configuration.tmpl to give the needed information
+   when you compile and link the module. Open it with your favorite text
+   editor, and the first non-comment line must be EXTRA_CFLAGS=. This
+   line and a few following lines are:
+   
+    EXTRA_CFLAGS=
+    EXTRA_LDFLAGS=
+    EXTRA_LIBS=
+    EXTRA_INCLUDES=
+
+   You will edit the last three lines. Write the PostgreSQL library
+   directory after EXTRA_LDFLAGS=, and the header file directory and its
+   parent directory after EXTRA_INCLUDES=. Write -lpq after line
+   EXTRA_LIBS=, which means you will use the pq library. The edited lines
+   are as follows(Assume that PostgreSQL libraries and header files are
+   in the directory /usr/local/lib and /usr/local/include/pgsql
+   respectively).
+   
+    EXTRA_CFLAGS=
+    EXTRA_LDFLAGS=-L/usr/local/lib
+    EXTRA_LIBS=-lpq
+    EXTRA_INCLUDES=-I/usr/local/include -I/usr/local/include/pgsql
+
+   Move to the parent directory and run the script configure with your
+   module source location as the value of the argument --add-module. The
+   following example assumes that your module sources are located in
+   /path/to.
+   
+    $ cd ..
+    $ ./configure [your options] --add-module=/path/to/mod_auth_pg.c
+
+   Replace [your options] with other options of configure. For the detail
+   about available options, consult the file INSTALL in Apache top
+   directory or run the following command.
+   
+    $ ./configure --help
+
+   Go on as you install apache without this module.
+   
+4. Usage
+
+   There are two ways to use mod_auth_pg. The one is to make .htaccess
+   file in the directory which requires user authentication, and the
+   other is to edit httpd.conf.
+   
+4.1 .htaccess
+
+   Apache doesn't recognize .htaccess at default. You must edit
+   httpd.conf to enable .htaccess. Open httpd.conf and you will find
+   the line <Directory /any/path>. Between <Directory /any/path> and
+   </Directory> there is a line which starts with AllowOverride. The
+   value of this item should contain AuthConfig or All. Edit and save it.
+   Now restart Apache or give the signal with kill to reload httpd.conf.
+   
+   Open .htaccess in the directory requiring user authentication, and
+   write whatever directives you need.
+   
+    AuthName my_auth
+    AuthType Basic
+    AuthPGHost my.database.server
+    AuthPGDatabase my_db
+    AuthPGUserTable user_table
+
+    require valid-user
+
+   If you specify the name of host after AuthPGHost directive, Apache
+   will try to connect to PostgreSQL using internet domain socket, which
+   means you should run postmaster with -i option, and edit configuration
+   file to allow this type of access. When omit AuthPGHost directive,
+   postmaster and httpd should run on the same machine.
+   
+   Consult mod_auth_pg.html for the usage of each directive.
+   
+4.2 httpd.conf
+
+   Specify the directory requiring user authentication using <Directory
+   /my/directory> in httpd.conf. The directives between opening and
+   closing Directory tag are the same ones as in .htaccess. If you want
+   user authentication in /my/secret, insert the followings into
+   httpd.conf
+   
+    <Directory /my/srcret>
+    (the same directives as in .htaccess)
+    </Directory>

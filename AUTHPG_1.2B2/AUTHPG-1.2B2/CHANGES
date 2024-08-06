@@ -1,0 +1,9 @@
+1.2
+
+o New directives: AuthPGUser, AuthPGPassword, AuthPGVirtual, AuthPGDomain
+
+
+1.1
+
+o A new directive: AuthPGQuery
+o Makefile for a DSO module

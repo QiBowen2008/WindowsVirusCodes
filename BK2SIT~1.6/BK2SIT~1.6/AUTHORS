@@ -1,0 +1,15 @@
+
+Jose M. Vidal (bk2site-dev@lists.sourceforge.net, vidal@sc.edu)
+               
+
+CONTRIBUTORS:
+Joaquin Ferrero [explorer@pucela.net] - name2url, escape accents
+Daniel Barrero [Barrero@irit.fr] - patch for handling flat file systems
+reinier.mostert@bigfoot.com - patch to handle bookmark aliases.
+Oliver Obst [frvit@uni-koblenz.de] - provided autoconf scripts, supplied 
+   patches for new features (ALIAS foldername), autoconf fixes.
+Hannes Faestermann [Hannes_Faestermann@genua.de] - patch for new.html
+David Cancel [dcancel@yahoo.com] - cool ideas and code for improving search.pl
+August Hoerandl - wrote check-meta.pl. added "date" tag.
+Bradley Bell - patch to support multiuser setups.
+Michael Schmitz [mschmitz@sema.de] - fixes to redirect.pl, a lot of search.pl.

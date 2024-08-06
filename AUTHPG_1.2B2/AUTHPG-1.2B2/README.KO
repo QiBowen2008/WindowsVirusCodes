@@ -1,0 +1,143 @@
+                   AuthPG: 아파치-포스트그레스 인증 모듈
+                                      
+                         김민식 <minskim@bawi.org>
+   
+                              2000년 1월 15일
+   
+1. 소개
+
+   포스트그레스 인증 모듈(mod_auth_pg)은 아파치 웹서버에서 포스트그레스 데
+   이터베이스에 저장된 사용자 정보를 사용하여 사용자 인증을 행할 수 있도록
+   하는 모듈이다. 또한 이 모듈은 사용자 정보를 쿠키를 통해서도 넘겨받을 수
+   있도록 되어 있어서 표준 방식과 쿠키를 사용한 방식 중 택일하여 사용할 수
+   있다.
+   
+2. 필요한 것
+
+   이 모듈은 Apache-1.3.9와 PostgreSQL-6.4.2로 테스트 해 보았다.
+   
+     * 포스트그레스
+     * 아파치 웹서버
+     * 포스트그레스 인증 모듈
+       
+3. 컴파일 및 설치
+
+   설치에 앞서 포스트그레스가 먼저 설치되어 있어야 한다. RPM으로 설치한 경
+   우 postgresql-devel이 필요하다. 포스트그레스가 설치되어 있으면 헤더파일
+   과 라이브러리의 위치를 확인한다. 이 정보는 컴파일 시에 필요하므로 정확
+   하게 알고 있어야 한다.
+   
+   먼저 임의의 디렉토리에 모듈 소스의 압축을 푼다.
+   
+    $ tar xvzf AuthPG-1.2b1.tar.gz
+
+   AuthPG를 사용하는 방법은 두 가지가 있다. 첫째 방법은 아파치의 DSO 모듈
+   로 컴파일하여 사용하는 것이고, 둘째 방법은 아파치와 함께 컴파일하는 것
+   이다.
+   
+  DSO 모듈로 만들기
+  
+   기존에 사용하고 있는 아파치가 DSO를 지원하도록 컴파일 된 것이라면
+   AuthPG를 DSO 모듈로 만들어 사용할 수 있다. 이 경우 아파치를 다시 컴파일
+   하지 않아도 된다는 장점이 있다. AuthPG의 디렉토리에 있는 Makefile을 열
+   어 앞의 몇 줄을 고쳐 주자. 고칠 부분은 아파치에서 제공하는 도구들의 경
+   로(APXS, APACHECTL)와 포스트그레스의 헤더 파일 및 라이브러리 관련 설
+   정(INC, LIB)이다. 이것만 고쳐주고 make 명령을 실행하면 mod_auth_pg.so가
+   생성된다.
+   
+   생성된 DSO 모듈을 아파치에서 사용하는 방법은 아파치 매뉴얼을 참조하기
+   바란다.
+   
+  아파치와 함께 컴파일하기
+  
+   이 방법을 사용하면 mod_auth_pg.c가 아파치 소스 디렉토리로 옮겨져 컴파일
+   된다.
+   
+   적당한 디렉토리에 아파치 소스의 압축을 풀고 src 디렉토리로 이동한다.
+   
+    $ tar xvzf apache_1.3.9.tar.gz
+    $ cd apache_1.3.9/src
+
+   모듈 컴파일 및 링크에 필요한 정보는 Configuration.tmpl에 적어 주어야 한
+   다. 자신이 쓰는 에디터로 이 파일을 불러 보면 주석을 제외하고 처음으로
+   나오는 행이 EXTRA_CFLAGS=일 것이다. 이 부분을 자세히 적어보면 다음과 같
+   다.
+   
+    EXTRA_CFLAGS=
+    EXTRA_LDFLAGS=
+    EXTRA_LIBS=
+    EXTRA_INCLUDES=
+
+   여기서 수정할 것은 마지막 3줄이다. EXTRA_LDFLAGS에는 포스트그레스의 라
+   이브러리가 들어 있는 디렉토리를, EXTRA_INCLUDES에는 헤더 파일이 들어 있
+   는 디렉토리와 그 상위 디렉토리를 각각 적어 준다. EXTRA_LIBS에는 -lpq라
+   고 적으면 된다. pq 라이브러리를 쓰겠다는 뜻이다. 이제 다음과 같이 되었
+   을 것이다. (포스트그레스 라이브러리는 /usr/local/lib에, 헤더는
+   /usr/local/include/pgsql에 설치되어 있는 것으로 가정한다.)
+   
+    EXTRA_CFLAGS=
+    EXTRA_LDFLAGS=-L/usr/local/lib
+    EXTRA_LIBS=-lpq
+    EXTRA_INCLUDES=-I/usr/local/include -I/usr/local/include/pgsql
+
+   이제 상위 디렉토리로 이동하여 아파치 컴파일 환경 설정을 위한 스크립
+   트(configure)를 실행하는데, 이 때 모듈 소스의 위치를 --add-module 옵션
+   의 값으로 주면 된다. (모듈 소스가 /path/to 디렉토리에 있는 것으로 가정
+   한다.)
+   
+    $ cd ..
+    $ ./configure [your options] --add-module=/path/to/mod_auth_pg.c
+
+   [your options]에는 configure의 다른 옵션들을 주면 된다. 옵션에 대해서는
+   아파치 소스의 INSTALL 파일을 참조하거나 다음 명령을 실행해본다.
+   
+    $ ./configure --help
+
+   나머지 과정은 일반적인 아파치 설치 방법과 동일하다.
+   
+4. 사용 방법
+
+   mod_auth_pg를 사용하는 방법은 두 가지가 있다. 하나는 사용자 인증이 필요
+   한 디렉토리에서 .htaccess 파일을 만드는 것이고, 또 하나는 httpd.conf 파
+   일에 직접 사용자 인증이 필요한 디렉토리를 명시하고 설정을 하는 것이다.
+   
+4.1 .htaccess 사용
+
+   먼저 해당 디렉토리에서 .htaccess 파일을 인식할 수 있도록 httpd.conf 파
+   일을 변경해야 한다. httpd.conf에는 <Directory /any/path>와 같은 부분이
+   있는데 이 부분에 AllowOverride란 항목이 있다. 이 값이 AuthConfig나 All
+   로 되어 있어야 하므로 이를 적절히 수정한 후 저장한다. 이제 아파치를 다
+   시 실행시키거나 kill 명령을 써서 새로운 httpd.conf 파일을 읽어들이도록
+   한다.
+   
+   이제 실제로 사용자 인증이 필요한 디렉토리에 .htaccess를 만들 차례이다.
+   여기에는 다음과 같은 항목이 들어 간다.
+   
+    AuthName my_auth
+    AuthType Basic
+    AuthPGHost my.database.server
+    AuthPGDatabase my_db
+    AuthPGUserTable user_table
+
+    require valid-user
+
+   여기서 AuthPGHost를 명시한다면 아파치는 인터넷 소켓을 통해 포스트그레스
+   와 연결되므로 postmaster를 실행시킬 때 -i 옵션을 주어야 하고, 웹서버가
+   설치된 기계에서 포스트그레스에 접속할 수 있도록 포스트그레스의 설정파일
+   을 변경해 주어야 한다. AuthPGHost를 쓰지 않으면 -i 옵션을 줄 필요가 없
+   으나, 반드시 포스트그레스가 웹서버와 같은 기계에서 동작하고 있어야 한
+   다.
+   
+   그 외의 설정에 관한 자세한 설명은 mod_auth_pg에 포함된
+   mod_auth_pg.ko.html을 참조한다.
+   
+4.2 httpd.conf 사용
+
+   httpd.conf 파일 내에 <Directory /my/directory>를 써서 사용자 인증을 원
+   하는 디렉토리를 명시해 준다. 그 내부에 적는 것은 앞의 .htaccess 파일의
+   내용과 동일하다. /my/secret 디렉토리에서 사용자 인증을 하려면 다음과 같
+   이 한다.
+   
+    <Directory /my/srcret>
+    (.htaccess 의 내용)
+    </Directory>

@@ -1,0 +1,2 @@
+
+cat VERSION.h | awk '{ print $4}'

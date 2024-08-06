@@ -1,0 +1,10 @@
+AuthName "myauth"
+AuthType Basic
+AuthPGHost myhost
+AuthPGDatabase mydb
+AuthPGUserTable member
+AuthPGPasswordField passwd
+AuthPGUserNameField id
+AuthPGEncrypted off
+
+require valid-user

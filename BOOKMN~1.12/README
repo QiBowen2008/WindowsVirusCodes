@@ -1,0 +1,26 @@
+bookmng 0.12
+
+Bookmng is a small program that generates, from netscape bookmarks file,
+several html files that contains all the bookmarks in a hierarchical
+structure. The program is intended to enable you to easily publish
+your bookmarks, while supporting: (i) convenient hierarchical
+structure, with each page containing only several links (ii) linking
+from the outside into your bookmarks, and (iii) hiding parts of the
+bookmarks that are private,
+
+Bookmng is currently very primitive. To use - compile (by doing 'make')
+and edit bookmng.cfg. To run, do:
+
+          ./bookmng bookmng.cfg
+
+This is it.
+
+To see how the output of bookmng looks like, have a look at:
+
+http://www.math.tau.ac.il/~sariel/bookmarks/bookmarks.html
+
+If you have remarks or suggestions, please email:
+
+   sariel@math.tau.ac.il
+
+The program is copyrighted under the GPL.

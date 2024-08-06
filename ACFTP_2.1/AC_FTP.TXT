@@ -1,0 +1,114 @@
+-------------------------------------------------------
+ AC_FTP.EXE: file transfer protocol client application 
+-------------------------------------------------------
+
+This application is described in detail in Chapter 7, "Sample
+Application and Library" in _Windows Sockets Network Programming_  
+by Bob Quinn and Dave Shute, published by Addison-Wesley, Reading, MA  
+ISBN: 0-201-63372-8
+
+What it does: AC_FTP is a file transfer protocol client
+ that uses asynchronous socket operation mode and utilizes many
+ programming techniques described in detail throughout the book.
+ It connects to an FTP server, sends commands and receives replies
+ according to rfc959.txt">RFC 959 to get and put files,
+ change directories, get file lists, delete files.
+
+What it illustrates: The source code for AC_FTP illustrates
+ many key aspects of WinSock application programming, including
+ how to connect as a TCP client and as a server, how to maximize
+ data throughput using sockets with asynchronous operation mode.
+ It also demonstrates how to receive variable length data on a
+ stream connection; this is often a problem since TCP (rfc793.txt">RFC 793
+ and rfc1122.txt">RFC 1122) does not preserve packet
+ boundaries. It also shows how to implement an application protocol--the
+ FTP protocol--using a state machine; maintaining socket state
+ is an important aspect of most network applications.
+
+How to Use it: AC_FTP implements a subset of the FTP command
+ set, and has buttons in the main dialog box for each of the commands
+ available..
+
+  - Start by pressing the "Connect" button, and fill
+     in the destination hostname or IP address (the location of the
+     FTP server), the user name and password.. Once the "Status"
+     in upper right of the AC_FTP application window says "connected,"
+     you can press the other buttons to issue FTP commands
+  - The "DIR" button in the "Remote Working Directory"
+     box.retrieves the remote file directory, and "DIR" in
+     the "Local Working Directory" displays the file directory
+     from the local disk. AC_FTP puts the file directory list into
+     a temporary file called delete.me, and invokes the Windows notepad.exe
+     to display it. You can leave several such directory file lists
+     open for simultaneos viewing
+  - The "CWD" buttons allow you move to different directories
+     on the remote or local systems.
+  - The "Put" and "Get" buttons send and receive
+     files, respectively.
+  - You can "Abort" any pending operation, "Close" the control 
+     connection, or "Exit" the application at any time.
+
+Known Problems: AC_FTP, as all other the sample applications,
+ suffers from a user-hostile interface. User friendliness was sacrificed
+ to minimize user interface code, and emphasize the network code.
+ The most blatant user-hostile feature is the text in the status
+ box that scrolls in the wrong direction. The method of displaying
+ the file directories is less than ideal also, but calls for very
+ little code. The CWD command does not allow you to move between
+ disks on the local system.
+
+File List: 
+ AC_FTP\AC_FTP.DEF 
+ AC_FTP\AC_FTP.ICO 
+ AC_FTP\RESOURCE.H 
+ AC_FTP\AC_FTP.H 
+ AC_FTP\AC_FTP.MAK Makefile for 16-bit ac_ftp.exe 
+ AC_FTP\AC_FTP32.MAK Makefile for 32.bit ac_ftp32.exe 
+ AC_FTP\AC_FTP.RC 
+ AC_FTP\FTP_DATA.C all routines for the data connection 
+ AC_FTP\FTP_CTRL.C all routines for the control connection 
+ AC_FTP\AC_FTP.C
+
+--------
+ NOTES:
+--------
+
+We used Microsoft Visual C++ enviroments (versions 1.52 for 16-bit,
+and version 2.1 for 32-bit) to create most of the makefiles.
+Unfortunately, because the paths are hard-coded in the file, you will
+have to bring the project files (.mak) into the respective MS C++
+environments to readjust things to the new directory, and even then
+you will have to manually alter the project to access the library
+files (the are in the root of the directory where you install the
+samples).
+
+All samples--including the sample DLL and static library--have a
+number of other things in common:
+
+  - They all have 32-bit versions, and all 32-bit version names
+     end with "32" (16-bit versions don't have a number).
+  - They use the WSAperror() function from #WINSOCKX">WINSOCKX.LIB
+    to display error values and short descriptions when an unexpected
+    error occurs.
+  - They display error messages on any suspicious error condition.
+     They don't hide errors, but report them whenever they occur. As
+     we describe n a_c.htm">Appendix C: WinSock Error Reference,
+     these error messages should appear only when a "user fixable
+     error" occurs. If you get an error message from a sample
+     application for a non user-fixable error, then this may
+     indicate an anomoly in the WinSock implementation that your applications
+     may need to deal with. We show you the errors on purpose, to make
+     you aware of unexpected conditions.
+  - They have a minimal user interface, and do not have help (.HLP)
+     files available.
+  - They are meant to be played with. They are for exploration
+     and experimentation as well as to illustrate how to write WinSock
+     applications.
+
+The icons used for each sample don't mean much, but they meet
+the following three criteria:
+
+    - They each contain the socket from the official WinSock icon.
+    - Each one is colorful in its own unique and wonderful way.
+    - Each took under 10 minutes to create.
+

@@ -1,0 +1,32 @@
+BUGS:
+
+
+----
+Features:
+
+- Add a %LINKTO(url) which turns into a link to where the url is
+  on the local website. Add a datamember "localURL", and make a 
+  new createsiteH() which simply sets these member values. (Change
+  fixAlias??)
+
+- redirect.pl and bk2site should handle directories.
+    make redirect.pl change relative paths to absolute before saving.
+    add a %CURL which gives the current directory (??).
+
+- Turn into research project.
+Create a new java version which:
+
+1- Reads the user's bookmarks and displays them ala yahoo. Look will
+not be customizable.
+
+2- Has a search box, which works like search.pl.
+
+3- Next to each bookmark is an Edit button (Q: how to synchronize this 
+with netscape)
+
+4- Next to each, there is a Publish button. Allow users to publish
+their bookmarks to a central (or chosen) website. Also, allow agent to 
+use it as currency. 
+
+5- New urls should be reported as News. It should be like a
+personalized paper. There is News and News-to-You.

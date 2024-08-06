@@ -1,0 +1,969 @@
+/usr/local/cvsroot/bk2site
+2000-12-15  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/ChangeLog, /cvsroot/bk2site/bk2site/bk2site.C:
+	updated.
+
+	* /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/AUTHORS, /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/bk2site.C:
+	Applied patch by Oliver Obst which, as he states:
+
+	I've made following changes / additions:
+
+	- Directory aliases can have names different from the folder they are
+	  pointing to (ALIAS Other Folder)
+	- bk2site now uses the global config file given at configuration time
+	- [JS]FSCOMMENT skips a single letter with a period when looking for
+	  the end of a sentence. (To get the first sentences of paragraphs
+	  like "bk2site by Jose M. Vidal is cool. Download on sourceforge.")
+	- The man page gets installed automatically
+	- the default place for the global config file for the bk2site package
+	  is /etc/bk2site/dot.bk2siterc; but configure gets an option
+	  "--enable-standard-datadir"  to put it into
+	  $(prefix)/share/bk2site/dot.bk2siterc .
+	  (The advantage of this solution over changing the Makefile.am
+	   directly is that one doesn't have to have automake et al. to change
+	   the installation directory).
+
+2000-11-30  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	Applied patch from Michael Schmitz <mschmitz@sema.de>
+	that supports all the functions and special tags from
+	bk2site.
+
+2000-11-26  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/Makefile.am:
+	-xbel filename
+
+	will output the bookmarks to filename using the XML Bookmark Exchange
+	Language (XBEL).
+
+2000-10-22  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/ChangeLog:
+	changes.
+
+	* /cvsroot/bk2site/bk2site/.cvsignore:
+	too much junk in this file...need to clean up.
+
+	* /cvsroot/bk2site/bk2site/Makefile.am:
+	Fixed typo.
+
+	* /cvsroot/bk2site/bk2site/configure.in:
+	New version.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C:
+	Fixed Bug #116957, where I was assigning a bool to a string. I have no
+	idea why this was compiling before.
+
+	The bug prevented the new g++ compiler in RedHat 7.0 from compiling
+	bk2site.
+
+2000-08-16  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/redirect.pl:
+	Fixed bug with url's that have + in them.
+
+	The CGI module seems to turn + into space, so I turned spaces back
+	into +.
+
+2000-08-01  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am:
+	Changed "CXXFLAGS=..." to "CXXFLAGS?=..." so as to
+	enable custom CXXFLAGS at configure time.
+	Thanks to Alexander Leidinger.
+
+2000-06-07  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/AUTHORS, /cvsroot/bk2site/bk2site/redirect.pl:
+	Michael Schmitz sent in this fix which adds a logfile parameter
+	to support multiple users, along with some debug code.
+
+2000-06-01  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added "sort hits normal" and "sort hits inverse" which
+	sort urls based on the number of hits they get.
+
+2000-05-24  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/iwebstream.C:
+	It will work even if the webserver at the other end does not
+	supply a Content-Length tag, which the Wired News channel
+	was doing often.
+
+	* /cvsroot/bk2site/bk2site/search.pl: bug fix.
+
+2000-05-13  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	Closed major security hole. thanks to Dan Riley for pointing it out.
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Applied patch to handle japanese and other 16-bit character sets; also
+	adds DIRNAME <foldername> comment feature to write folders in a name
+	different from the title of the folder; also lets URLs have "
+	character in them.
+
+	* /cvsroot/bk2site/bk2site/AUTHORS, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/reference.C:
+	name2url() escapes accents when generating a url.
+
+2000-04-26  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	small bug fix, someone sent it in.
+	It fixes the NOACCENTURL directive.
+
+2000-04-21  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C:
+	Reading of the urllog file does not brake if file is
+	missing urls. Fixed some bugs (lack of initialization) which
+	might have resulted in garbage being written to urllog file.
+
+2000-04-11  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/iwebstream.C: Report version in User-Agent.
+
+	* /cvsroot/bk2site/bk2site/check-meta.pl:
+	(Now without extra characters):
+	New version sent by August Horandl:
+
+	i have done some hacking - new features:
+
+	-  use LWP::Parallel::UserAgent to get many url in parallel: this speeds
+	   up things a lot
+	   remarks:
+	   this was the hard part - but after a lot of testing it should work
+	   the most problems were caused by url redirections
+	   there may slip some entries into meta database which will be
+	discarded
+	   on the next run
+
+	-  added sorting to dump_errordata_html
+
+	Gustl
+
+2000-04-10  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/check-meta.pl:
+	New version sent by August Horandl:
+
+	i have done some hacking - new features:
+
+	-  use LWP::Parallel::UserAgent to get many url in parallel: this speeds
+	   up things a lot
+	   remarks:
+	   this was the hard part - but after a lot of testing it should work
+	   the most problems were caused by url redirections
+	   there may slip some entries into meta database which will be
+	discarded
+	   on the next run
+
+	-  added sorting to dump_errordata_html
+
+	Gustl
+
+2000-02-15  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/iwebstream.C: cleaning up.
+
+	* /cvsroot/bk2site/bk2site/iwebstream.C:
+	webpage fetching is more robust.
+
+	* /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/iwebstream.C:
+	If webpage does not return result code 200 (OK) fail gracefully.
+
+2000-02-14  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/iwebstream.C: never return a partial page.
+
+	* /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/iwebstream.C, /cvsroot/bk2site/bk2site/iwebstream.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/search.pl:
+	does not crash when it gets truncated RSS file. iwebstream now
+	tries to dowload 5 times before giving up (in case of reading error
+	such as "Connection reset by peer").
+
+2000-02-08  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/indexbase.html, /cvsroot/bk2site/bk2site/newbase.html, /cvsroot/bk2site/bk2site/otherbase.html, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/search.pl:
+	%COMMENT now preserves <BR>s (except in search.pl, where it replaces
+	them with space...fix this in the future).
+
+2000-02-06  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/funstring.C, /cvsroot/bk2site/bk2site/funstring.H:
+	Added &RSS[] function which does a
+	&CUT[&NOACCENTS[&NOHTML[s]]|450] ...used for RSS channels.
+
+2000-02-01  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/funstring.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added support for functions, such as
+	&CUT[], &NOHTML[arg], &FILL[arg|cols], etc.
+
+	* /cvsroot/bk2site/bk2site/funstring.C, /cvsroot/bk2site/bk2site/funstring.H:
+	First check in, seems to work.
+
+2000-01-31  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Addend ".\t", etc. to %FSCOMMENT et.al.
+
+2000-01-30  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	%FSCOMMENT and %JSFSCOMMENT now look for sentence to end
+	in ". " or "? " or "! ".
+
+2000-01-27  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/configure.in: new version.
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	" is replaced by \' in the %JSCOMMENT
+
+2000-01-25  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Added \n \t \r to %JSCOMMENT and %JSFSCOMMENT list of
+	escapes.
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added %JSCOMMENT and %JSFSCOMMENT.
+
+	* /cvsroot/bk2site/bk2site/reference.C: Replace \n,\t,\r with a space.
+
+	* /cvsroot/bk2site/bk2site/redirect.pl: Needed to close urllog.
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added %LONGCOMMENT.
+
+	* /cvsroot/bk2site/bk2site/configure.in: New version.
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added %FSCOMMENT. Changed %SHORTCOMMENT() so it does not
+	autofill the parragrah.
+
+2000-01-23  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Merging of various bookmark files, using PUBLISH, now works.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C:
+	Does not stop when it gets an empty urllogfile,
+	tries to write to it anyway.
+
+2000-01-20  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/bk2site.1:
+	fixed spelling.
+
+2000-01-16  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/configure.in:
+	new version.
+
+2000-01-15  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.1:
+	Changed my email to mailing list address.
+
+	* /cvsroot/bk2site/bk2site/spec:
+	Compiling the source rpm now installs in a temp directory
+	and then erases all the files (as it should be).
+	Thanks to "Steven W. Orr" <steveo@world.std.com> for
+	pointing this out.
+
+	* /cvsroot/bk2site/bk2site/AUTHORS, /cvsroot/bk2site/bk2site/bk2site.1:
+	Changed the email to the new mailing list.
+
+	* /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	The -o switch now writes out the "sort" commands also. It
+	should now preserve all the information in the original
+	bookmark file (altough it still changes the order of the
+	bookmarks).
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added %NOACCENTTITLE %NOACCENTCOMMENT %NOACCENTURL which replace
+	accented characters (and other weird characters) with similar but
+	more standard characters. It gets rid of all accents since this was
+	confusing some browsers.
+
+2000-01-07  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/indexbase.html, /cvsroot/bk2site/bk2site/newbase.html, /cvsroot/bk2site/bk2site/otherbase.html:
+	Changed urls to point to bk2site.sourceforge.net.
+
+	* /cvsroot/bk2site/bk2site/INSTALL:
+	added note about creating "configure" and friends.
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	fixed y2k bugs, added support for %YEARFxxx.
+
+	* /cvsroot/bk2site/bk2site/configure.in: Got rid of const, new version.
+
+	* /cvsroot/bk2site/bk2site/TODO: New ideas.
+
+	* /cvsroot/bk2site/bk2site/Makefile.am: Added publish to sourceforge.
+
+2000-01-05  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/TODO: new.
+
+2000-01-04  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/channel.C, /cvsroot/bk2site/bk2site/reference.C:
+	We now trim whitespace from channel comments and titles.
+
+	* /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/element.C:
+	Added tophitsincludenews variable.
+
+2000-01-03  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/element.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added <!-bk2site:path-->.
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/reference.C:
+	Added %SHORTCOMMENT(int)
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	sort command can now appear anywhere in comment field of folder.
+
+2000-01-02  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added %YEARFCRE %YEARFMOD %YEARFVIS which show
+	the whole year (not just the last two digits).
+
+	* /cvsroot/bk2site/bk2site/configure.in: New version.
+
+	* /cvsroot/bk2site/bk2site/reference.C: Commented out useless code.
+
+	* /cvsroot/bk2site/bk2site/reference.C: Fixed y2k bug.
+
+1999-12-31  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/indexbase.html, /cvsroot/bk2site/bk2site/newbase.html, /cvsroot/bk2site/bk2site/otherbase.html:
+	Made the link to www.multiagent.com.
+
+1999-12-29  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl: It now works with the new newgif.
+
+	* /cvsroot/bk2site/bk2site/configure.in: new version.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: sorting works.
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/bk2site.C:
+	Sorting folders works again. How long was that broken?!?
+	hay caramba!
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	If a folder has a subfolder that is an alias of another
+	folder, the subfolder's creation time is NOT used to
+	update the folder's creation time.
+
+1999-12-28  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C:
+	Set the default newgif to a working html string.
+
+	* /cvsroot/bk2site/bk2site/configure.in: New version.
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/indexbase.html, /cvsroot/bk2site/bk2site/otherbase.html, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	New feature lets user change the creation time of
+	a folder to be the max creation time of any of its descendants
+	or of any of its children.
+
+	Changed the newgif and made it a chunk of HTML which
+	will be inserted in place of the %NEW when appropiate.
+
+	* /cvsroot/bk2site/bk2site/AUTHORS: Added the missing guys.
+
+1999-12-09  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	Clicking on the "10 20 30" after a two word search
+	now works. Also, they don't skip the 10th item.
+
+	* /cvsroot/bk2site/bk2site/configure.in: 0.9.4
+
+	* /cvsroot/bk2site/bk2site/Makefile.am: stuff.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.H:
+	Merge now works when the PUBLIC folder is also the
+	"topfolder".
+
+1999-12-08  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/configure.in: New version 0.9.3
+
+	* /cvsroot/bk2site/bk2site/channel.C, /cvsroot/bk2site/bk2site/iwebstream.C, /cvsroot/bk2site/bk2site/iwebstream.H, /cvsroot/bk2site/bk2site/reference.C:
+	The comments from one item in a channel no longer appear
+	in other items with no <description> section.
+
+	* /cvsroot/bk2site/bk2site/bk2site.1: Updated search.pl documentation.
+
+1999-12-07  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/element.C:
+	Added error message when channel not found.
+
+	* /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/redirect.pl:
+	Changed to urllog file, added comments about its usage.
+
+	* /cvsroot/bk2site/bk2site/configure.in: New version.
+
+	* /cvsroot/bk2site/bk2site/channel.C, /cvsroot/bk2site/bk2site/iwebstream.H:
+	Added error message for when channel file does not
+	parse. If file does not parse we now try the backup
+	file.
+
+	* /cvsroot/bk2site/bk2site/Makefile.am:
+	Added tag comment and copying rpms.
+
+1999-12-05  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am:
+	Now rpm2 copies rpms to web directory.
+
+1999-11-30  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/dot.bk2siterc: Commented out channels.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C:
+	Error message if more extrafilename than extrafilebase (or viz.)
+
+1999-11-22  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/dot.bk2siterc:
+	Fixed lwm (should be lwn) typo.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: Fixed todo list.
+
+	* /cvsroot/bk2site/bk2site/check-meta.pl:
+	New version (0.5) sent in by August Horandl.
+
+1999-11-13  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/channel.C, /cvsroot/bk2site/bk2site/channel.H, /cvsroot/bk2site/bk2site/element.C:
+	Channels now support %HITS tag.
+
+1999-11-03  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/check-meta.pl:
+	New version (0.4) sent in by August Hoerandl.
+
+	* /cvsroot/bk2site/bk2site/configure.in: Spelled nsl correctly.
+
+	* /cvsroot/bk2site/bk2site/configure.in: New version.
+
+	* /cvsroot/bk2site/bk2site/INSTALL: Reminding me of autoheader.
+
+	* /cvsroot/bk2site/bk2site/ChangeLog, /cvsroot/bk2site/bk2site/config.h.in, /cvsroot/bk2site/bk2site/Makefile.in, /cvsroot/bk2site/bk2site/Makefile:
+	Since its automatically generate, no need to be in cvs.
+
+	* /cvsroot/bk2site/bk2site/configure.in:
+	Added check for nls library (Solaris needs it).
+
+1999-11-02  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/configure.in:
+	Added some macros from the configure.in of wget.
+	Hopefully it should not check for the socket library
+	and include it (-lsocket) when linking.
+
+1999-11-01  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/channel.C:
+	Fixed bugs so that channels without image sections
+	can now be read properly.
+
+1999-10-29  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/element.C:
+	newsandnewadd now ignores aliases. This eliminates duplicates in
+	the output.
+
+1999-10-27  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.in, /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/Makefile, /cvsroot/bk2site/bk2site/Makefile.am:
+	New version (0.9).
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/iwebstream.C, /cvsroot/bk2site/bk2site/iwebstream.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Now all (??) of the file reads use iwebstream, so urls
+	can be used wherever we need to read in a file.
+
+1999-10-26  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/iwebstream.C:
+	The http reply now includes only the actual web page.
+	The other messages are cut out. I should parse these
+	at some point...
+
+	* /cvsroot/bk2site/bk2site/bk2site.1: newsandnewadd was added.
+
+	* /cvsroot/bk2site/bk2site/README:
+	Starting to make it into a programmer's guide to bk2site.
+
+	* /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/element.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added support for newsandnewadd tag. Fixed autofill.
+	Fixed daysold tag.
+
+1999-10-25  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/ChangeLog, /cvsroot/bk2site/bk2site/Makefile, /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/Makefile.in, /cvsroot/bk2site/bk2site/bk2site.1, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/element.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added support for channels and date tag.
+
+	* /cvsroot/bk2site/bk2site/channel.H: channels!
+
+	* /cvsroot/bk2site/bk2site/channel.C:
+	Channel support. We start with my.netscape channels.
+
+	* /cvsroot/bk2site/bk2site/iwebstream.H:
+	Provides interface to web and local files.
+
+	* /cvsroot/bk2site/bk2site/iwebstream.C:
+	Provides interface to http: and local documents.
+
+1999-10-13  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	It now prints out the answer when there is only one match.
+
+1999-10-12  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.1: Fixed "old days" option.
+
+	* /cvsroot/bk2site/bk2site/ChangeLog, /cvsroot/bk2site/bk2site/Makefile, /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/Makefile.in, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/element.H:
+	Fixed warnings.
+
+	* /cvsroot/bk2site/bk2site/bk2site.1: Added contributors.
+
+1999-10-11  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	Fixed small bugs with the "showing 1--10" message and
+	the links "0 10 20" at the end of the page.
+
+	* /cvsroot/bk2site/bk2site/bk2site.1: First version.
+
+	* /cvsroot/bk2site/bk2site/INSTALL, /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/README, /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/spec:
+	Changed to accomodate new man page.
+
+1999-10-06  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/ChangeLog, /cvsroot/bk2site/bk2site/Makefile, /cvsroot/bk2site/bk2site/Makefile.in, /cvsroot/bk2site/bk2site/check-meta.pl, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/search.pl:
+	search.pl does not prepend ../ to the directory (last part)
+	results.
+
+1999-09-08  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile.am, /cvsroot/bk2site/bk2site/spec:
+	Added check-meta.pl to distribution.
+
+	* /cvsroot/bk2site/bk2site/README, /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/element.H:
+	Added variable "daysold" to the language.
+	URLS that were created more than daysold ago will not be shown.
+	Default is to show all.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	%COMMENT and %NHCOMMENT now auto-fill their output to 80
+	columns.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added -nc and "comments" variable, to turn off comment output.
+
+	* /cvsroot/bk2site/bk2site/Makefile.in, /cvsroot/bk2site/bk2site/Makefile, /cvsroot/bk2site/bk2site/ChangeLog:
+	Updating.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: Changed todo list.
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	$database (db) now defaults to urls.db
+
+1999-09-06  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	Now checks to see if urls.db is a regular file, or if it has metadata.
+
+	* /cvsroot/bk2site/bk2site/check-meta.pl:
+	Made it check the first line for file type.
+	Now supports regular urls.db and urls.db with metadata automatically.
+
+	* /cvsroot/bk2site/bk2site/check-meta.pl: First time.
+
+1999-09-05  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/README: Added %NHCOMMENT
+
+	* /cvsroot/bk2site/bk2site/spec: fixed location of files.
+
+	* /cvsroot/bk2site/bk2site/spec, /cvsroot/bk2site/bk2site/searchbase.html, /cvsroot/bk2site/bk2site/search.pl, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/otherbase.html, /cvsroot/bk2site/bk2site/newbase.html, /cvsroot/bk2site/bk2site/indexbase.html, /cvsroot/bk2site/bk2site/element.H, /cvsroot/bk2site/bk2site/dot.bk2siterc, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/Makefile.in, /cvsroot/bk2site/bk2site/Makefile:
+	added multiuser
+
+	* /cvsroot/bk2site/bk2site/closeup.gif, /cvsroot/bk2site/bk2site/cool.gif, /cvsroot/bk2site/bk2site/cool2.gif, /cvsroot/bk2site/bk2site/disk.gif, /cvsroot/bk2site/bk2site/earth.gif, /cvsroot/bk2site/bk2site/ltbulb.gif, /cvsroot/bk2site/bk2site/mailto.gif, /cvsroot/bk2site/bk2site/mana_red.gif, /cvsroot/bk2site/bk2site/new.gif, /cvsroot/bk2site/bk2site/news.gif, /cvsroot/bk2site/bk2site/note.gif, /cvsroot/bk2site/bk2site/question.gif, /cvsroot/bk2site/bk2site/smiley.gif, /cvsroot/bk2site/bk2site/thumbs_down.gif, /cvsroot/bk2site/bk2site/spec, /cvsroot/bk2site/bk2site/ChangeLog, /cvsroot/bk2site/bk2site/missing, /cvsroot/bk2site/bk2site/mkinstalldirs, /cvsroot/bk2site/bk2site/acconfig.h, /cvsroot/bk2site/bk2site/config.h.in, /cvsroot/bk2site/bk2site/Makefile.in:
+	new
+
+	* /cvsroot/bk2site/bk2site/Makefile.am: First checkin
+
+	* /cvsroot/bk2site/bk2site/install-sh: First checkin.
+
+	* /cvsroot/bk2site/bk2site/newbase.html: About time...first commit.
+
+	* /cvsroot/bk2site/bk2site/dot.bk2siterc: First checkin...about time!
+
+1999-09-04  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: commited from home.
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added %NHCOMMENT
+
+1999-09-03  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/configure.in: 8.1 version.
+
+	* /cvsroot/bk2site/bk2site/search.pl: Default num is now 20.
+
+1999-08-20  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	Fixed "search for bk2site" bug, by escaping all funky chars in the search string.
+
+1999-08-11  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	PUBLISH now works for deep folders.
+
+	* /cvsroot/bk2site/bk2site/configure.in: new version.
+
+	* /cvsroot/bk2site/bk2site/Makefile: no -g.
+
+1999-08-10  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/Makefile, /cvsroot/bk2site/bk2site/README, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added outputbookmarkfolder variable to .bk2siterc.
+	Ouput bookmarkfile is now much closer to the original
+	--except for <BR>, <HR>, and sort comments.
+
+1999-08-09  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/README, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added merge abilities (2 methods).
+	  - INCLUDE bookmarkfile
+	  - PUBLISH
+	Added -ns switch, so that bk2site can be used with -o as a filter.
+
+1999-08-08  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added writeAsBookmarkFile in referenceTree.
+
+1999-07-29  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: just checking.
+
+	* /cvsroot/bk2site/bk2site/README: added bk2site:include:search info.
+
+	* /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/element.H:
+	bk2site:include now gets rid of %QUERY, %NUMBER, %ESCQUERY in input file.
+	bk2site:inlcude:search leaves them in.
+
+	* /cvsroot/bk2site/bk2site/search.pl: Ignore 1-char queries.
+
+	* /cvsroot/bk2site/bk2site/searchbase.html: fixed html.
+
+	* /cvsroot/bk2site/bk2site/reference.C: minor changes.
+
+	* /cvsroot/bk2site/bk2site/otherbase.html, /cvsroot/bk2site/bk2site/indexbase.html:
+	fixed html.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: minor changes.
+
+	* /cvsroot/bk2site/bk2site/README: updated
+
+	* /cvsroot/bk2site/bk2site/NEWS, /cvsroot/bk2site/bk2site/INSTALL, /cvsroot/bk2site/bk2site/COPYING, /cvsroot/bk2site/bk2site/configure.in, /cvsroot/bk2site/bk2site/AUTHORS:
+	New.
+
+	* /cvsroot/bk2site/bk2site/Makefile: minor changes.
+
+1999-07-21  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C:
+	Set -f to NOT load ~/.bk2siterc when specified.
+
+	* /cvsroot/bk2site/bk2site/README: include tag added.
+
+	* /cvsroot/bk2site/bk2site/element.H:
+	Added bk2site:include support. (getContents function).
+
+	* /cvsroot/bk2site/bk2site/element.C: Added bk2site:include support.
+
+1999-07-14  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/README: Updated Hits documentation.
+
+1999-07-13  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/element.C:
+	Private URLS should also not print out.
+
+	* /cvsroot/bk2site/bk2site/element.C:
+	PRIVATE folders do not appear in output anymore.
+
+1999-07-07  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C:
+	Check for undeclared enviroment variables. This was causing core dumps when bk2site was run as a cron job.
+
+	* /cvsroot/bk2site/bk2site/README: Updated.
+
+1999-07-06  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C: Got rid of magic strings.
+
+	* /cvsroot/bk2site/bk2site/element.H, /cvsroot/bk2site/bk2site/element.C:
+	Changed the way sections are defined to make them more modular.
+
+1999-07-05  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added title variable.
+
+	* /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/element.H:
+	Added startNum.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: Fixed Error printout bug.
+
+	* /cvsroot/bk2site/bk2site/reference.C: Fixed makeVector bug.
+
+1999-07-04  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/element.H, /cvsroot/bk2site/bk2site/element.C, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added createPage and fileView class.
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	Pruned dead code.
+
+1999-07-03  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl, /cvsroot/bk2site/bk2site/otherbase.html, /cvsroot/bk2site/bk2site/indexbase.html, /cvsroot/bk2site/bk2site/README, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/bk2site.C:
+	Major changes.
+
+	* /cvsroot/bk2site/bk2site/element.H, /cvsroot/bk2site/bk2site/element.C:
+	First revision.
+
+1999-07-01  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: test.
+
+1999-06-24  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/redirect.pl: First commitment.
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Fixed subdirectory pointers when using -nd.
+
+1999-06-08  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/README: fixed href.
+
+1999-06-03  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl: Added %ESCQUERY.
+
+1999-06-01  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl: Got rid of escapes.
+
+	* /cvsroot/bk2site/bk2site/search.pl: Fixed bugs.
+	Added %QUERY and %NUMBER replacements in searchbase.html
+	Changed otherbase.html to searchbase.html
+	Fixed problem with searching for words that are the same
+	as directives (i.e. those funny words in the comments that are meant
+	to be understood by %IFCOMHAS()).
+	New feature, search on directives!
+
+	* /cvsroot/bk2site/bk2site/searchbase.html: New search base file.
+
+1999-05-24  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/search.pl:
+	Fixed problem with ? in titles.
+
+1999-05-10  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/README: Changes.
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	Added the search box, with searches to google, hotbot and altavista.
+
+1999-05-07  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl: Now new.gif works.
+
+1999-05-06  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl: bug
+
+	* /cvsroot/bk2site/bk2site/search.pl: Deleted some extra lines...
+
+	* /cvsroot/bk2site/bk2site/bk2site.C:
+	Writes urltemplate, newgif, and timecutoff to urls.db.
+
+	* /cvsroot/bk2site/bk2site/search.pl:
+	It now reads urltemplate, newgif and timecutof from urls.db.
+
+1999-05-04  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Set the alt= of the new.gif to "Added x/y/z",
+	where x/y/z/ is the creation date.
+
+1999-04-29  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	It can now better handle truncated bookmark.html files.
+
+1999-04-26  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C: Fixed bug with ? in titles.
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Ooops, fixed the bug that made the new.html be a top-20 list.
+
+1999-04-23  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/bk2site.C:
+	Added patch from Barrero (for flat filesystem). Fixed bugs in patch.
+	Put top hits on first page. Bug fixes.
+
+1999-04-13  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C: Writes and reads hits.
+
+	* /cvsroot/bk2site/bk2site/search.pl: Understands "hits"
+
+1999-04-09  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Fixed bug that made folders on main page appear wrong when they
+	had more than 1 column.
+
+1999-04-08  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/bk2site.C:
+	OK, urllog now is "time \t url". Added hitstimecutoff.
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Now writes new packed urllog file.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	It handles urllog files with urls followed by number of hits.
+
+1999-04-02  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Added %COMMENT for folders. Cleaned up a bit.c
+
+1999-03-31  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added %HITS and urllogfile support.
+
+1999-03-30  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added %IFCOMHAS.
+
+1999-03-26  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.H:
+	Changed time vars from int to time_t.
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Changed the gettimeofday() to a time() call and used ctime instead of sys/time.h
+	All in an effort to make this all C++.
+
+1999-03-16  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/indexbot.html:  No longer needed.
+
+1999-03-15  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/bk2site.C:
+	Added url, folder, new, new additions templates. First pass.
+
+1999-03-09  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Changed the way the .url field is output for folders.
+	It is now preceeded by seachtorootpath and followed by INDEX.
+
+	* /cvsroot/bk2site/bk2site/search.C, /cvsroot/bk2site/bk2site/search.pl:
+	Minor cosmetic changes.
+
+1999-03-08  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.pl: First Revision.
+
+1999-03-06  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/search.C: New search program. First version.
+
+	* /cvsroot/bk2site/bk2site/CGILib.C: First Version.
+
+	* /cvsroot/bk2site/bk2site/CGILib.H: First version.
+
+1999-03-02  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Added INDEX option.
+
+	* /cvsroot/bk2site/bk2site/reference.C: Fixed index.html bug
+
+1999-02-26  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added configure.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: Using the "configure" scripts.
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added exttarget, otherbookmarktd, foldertd, made every link relative.
+	Added index.html at end of all local links.
+
+1999-02-14  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/bk2site.C:
+	Added $HOME, $USER, sort.
+
+1999-01-29  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/reference.H, /cvsroot/bk2site/bk2site/reference.C:
+	Added .bk2siterc and PRIVATE.
+
+1999-01-25  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/reference.H: Added aliasing.
+
+	* /cvsroot/bk2site/bk2site/reference.C:
+	Added basic aliasing to URLs and Folders.
+
+1999-01-23  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: Added -d default.
+
+1999-01-21  Jose M. Vidal  <jmvidal@dali>
+
+	* /cvsroot/bk2site/bk2site/bk2site.C: Testing VC.
+
+	* /cvsroot/bk2site/bk2site/Makefile, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/indexbase.html, /cvsroot/bk2site/bk2site/indexbot.html, /cvsroot/bk2site/bk2site/indextop.html, /cvsroot/bk2site/bk2site/otherbase.html, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	Imported sources
+
+	* /cvsroot/bk2site/bk2site/Makefile, /cvsroot/bk2site/bk2site/bk2site.C, /cvsroot/bk2site/bk2site/indexbase.html, /cvsroot/bk2site/bk2site/indexbot.html, /cvsroot/bk2site/bk2site/indextop.html, /cvsroot/bk2site/bk2site/otherbase.html, /cvsroot/bk2site/bk2site/reference.C, /cvsroot/bk2site/bk2site/reference.H:
+	New file.
+

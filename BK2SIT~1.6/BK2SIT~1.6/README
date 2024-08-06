@@ -1,0 +1,42 @@
+******************
+NOTE: Consult the manpage for info on using bk2site
+
+If you dont want to install the manpage just do:
+
+groff -man -Tascii bk2site.1
+
+*****************
+
+Programmer's guide: (classes are in "quotes")
+
+bk2site.C
+The main(). Reads and parses the .bk2siterc files.
+
+reference.C
+The bookmarks are converted into a "referenTree" object. A referenceTree 
+contains a vector of "reference". A reference object is either a url
+(leaf) or a folder (non-leaf). references that are folders have a
+pointer (children) to a referenceTree which contains all their
+children.
+
+element.C
+An "element" represents one of the begin--end blocks found in the base
+files. A "fileview" contains all the elements in some base file. A
+fileview object is given some channels and other vector<reference> and 
+can output the html file.
+
+Its the model-view-controller pattern:
+referenceTree is the model.
+fileview is the view
+no controller.
+
+iwebstream.C 
+Is given an url and provides a single interface for reading from
+it. Handles files and http. It also does some SGML-type-tag parsing.
+
+channel.C
+A "channel" simply stores the parsed channel file, its a
+vector<reference>. A "channelContainer" has a vector<channel>.
+
+
+

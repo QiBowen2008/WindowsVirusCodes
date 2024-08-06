@@ -1,0 +1,13 @@
+;-----------------------
+; Filename: AC_FTP.DEF
+;-----------------------
+
+NAME      AC_FTP
+
+DESCRIPTION 'Async TCP FTP client (c) Bob Quinn 1995'
+CODE      PRELOAD MOVEABLE DISCARDABLE
+DATA      PRELOAD MOVEABLE MULTIPLE
+
+HEAPSIZE  8192
+
+EXPORTS

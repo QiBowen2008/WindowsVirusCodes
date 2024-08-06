@@ -1,0 +1,226 @@
+<html>
+<head>
+<title>Module mod_auth_pg</title>
+</head>
+<body bgcolor="#FFFFFF">
+<h1 align="center">Module mod_auth_pg</h1>
+
+This module provides for user authentication using <a href="http://www.postgresql.org/">PostgreSQL</a> database.
+
+<p>
+
+<menu>
+<li><a href="#host">AuthPGHost</a>
+<li><a href="#port">AuthPGPort</a>
+<li><a href="#user">AuthPGUser</a>
+<li><a href="#password">AuthPGPassword</a>
+<li><a href="#options">AuthPGOptions</a>
+<li><a href="#database">AuthPGDatabase</a>
+<li><a href="#usertable">AuthPGUserTable</a>
+<li><a href="#grouptable">AuthPGGroupTable</a>
+<li><a href="#passwordfield">AuthPGPasswordField</a>
+<li><a href="#usernamefield">AuthPGUserNameField</a>
+<li><a href="#groupnamefield">AuthPGGroupNameField</a>
+<li><a href="#virtual">AuthPGVirtual</a>
+<li><a href="#domainfield">AuthPGDomainField</a>
+<li><a href="#query">AuthPGQuery</a>
+<li><a href="#encrypted">AuthPGEncrypted</a>
+<li><a href="#anonymous">AuthPGAnonymous</a>
+<li><a href="#anonymoususername">AuthPGAnonymousUserName</a>
+<li><a href="#cookie">AuthPGCookie</a>
+<li><a href="#cookiename">AuthPGCookieName</a>
+<li><a href="#cookieseparator">AuthPGCookieSeparator</a>
+<li><a href="#authoritative">AuthPGAuthoritative</a>
+</menu>
+<hr>
+
+<h2><a name="host">AuthPGHost</a></h2>
+<strong>Syntax:</strong> AuthPGHost <em>host_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGHost directive sets the name of the server on which the postmaster is
+running. If not specified, a unix domain socket will be used to connect to the
+database instead of a TCP/IP connection. This alleviates the need to use -i
+when starting the Postgres postmaster.
+
+<h2><a name="port">AuthPGPort</a></h2>
+<strong>Syntax:</strong> AuthPGPort <em>port_number</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGPort directive sets the TCP/IP port number at which the postmaster can be found.
+
+<h2><a name="user">AuthPGUser</a></h2>
+<strong>Syntax:</strong> AuthPGUser <em>user</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGUser directive sets the database username (not the system username)
+to connect to the database as. If not specified, the user that the web server
+is running as will be used.
+
+<h2><a name="password">AuthPGPassword</a></h2>
+<strong>Syntax:</strong> AuthPGPassword <em>password</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGPassword directive sets the password to connect to the database with.
+
+<h2><a name="options">AuthPGOptions</a></h2>
+<strong>Syntax:</strong> AuthPGOptions <em>options</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGOptions directive sets additional runtime options for the Postgres backend.
+
+<h2><a name="database">AuthPGDatabase</a></h2>
+<strong>Syntax:</strong> AuthPGDatabase <em>database_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGDatabase directive sets the name of the database which keeps the authentication information.
+
+<h2><a name="usertable">AuthPGUserTable</a></h2>
+<strong>Syntax:</strong> AuthPGUserTable <em>table_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGUserTable directive sets the name of the table which contains the username field and password field.
+
+<h2><a name="grouptable">AuthPGGroupTable</a></h2>
+<strong>Syntax:</strong> AuthPGGroupTable <em>table_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGGroupTable directive sets the name of the table which contains the username field and groupname field. This name can be the same as the value of AuthPGUserTable directive.
+
+<h2><a name="passwordfield">AuthPGPasswordField</a></h2>
+<strong>Syntax:</strong> AuthPGPasswordField <em>field_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGPasswordField directive sets the name of the field containing the password in AuthPGUserTable.
+
+<h2><a name="usernamefield">AuthPGUserNameField</a></h2>
+<strong>Syntax:</strong> AuthPGUserNameField <em>field_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGUserNameField directive sets the name of the field containing the username in AuthPGUserTable. This name should be the same as the field name containg the username in AuthPGGroupTable.
+
+<h2><a name="groupnamefield">AuthPGGroupNameField</a></h2>
+<strong>Syntax:</strong> AuthPGGroupNameField <em>field_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGGroupNameField directive sets the name of the field containing the groupname in AuthPGGroupTable.
+
+<h2><a name="virtual">AuthPGVirtual</a></h2>
+<strong>Syntax:</strong> AuthPGVirtual &lt;on | <strong>off</strong>(default)&gt;<br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGVirtual directive controls the behavior of the authentication module
+when a user logs in with a userid of the form user@domain. If AuthPGVirtual is
+off, this type of userid is treated normally -- the entire string is considered
+to be the userid, and must exist in the field specified by the
+AuthPGUserNameField directive. If AuthPGVirtual is on, the userid is split into
+its user and domain components. The user compontent is matched against the
+field specified by the AuthPGUserNameField directive, and the domain component
+is matched against the field specified by the AuthPGDomainField directive. If
+AuthPGVirtual is on, and a userid does not contain '@', the domain field in the
+database must be blank or null.
+
+<h2><a name="domainfield">AuthPGDomainField</a></h2>
+<strong>Syntax:</strong> AuthPGDomainField <em>field_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGDomainField directive sets the name of the field containing the
+domain name. It is only utilized if AuthPGVirtual is on.
+
+<h2><a name="query">AuthPGQuery</a></h2>
+<strong>Syntax:</strong> AuthPGQuery <em>query</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGQuery directive sets the query to use instead of the default
+one.  This string must contain one '%s', which is replaced with a user
+name.  The result of the query should be the user's password.<br>
+Example: select password from members where name='%s'
+
+<h2><a name="encrypted">AuthPGEncrypted</a></h2>
+<strong>Syntax:</strong> AuthPGEncrypted &lt;<strong>on</strong>(default) | off&gt;<br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+Setting the AuthPGEncrypted directive to `off' allows for the passwords stored in Postgres not to be encrypted. Otherwise, they shoud be crypted by the <code>crypt</code> function.
+
+<h2><a name="anonymous">AuthPGAnonymous</a></h2>
+<strong>Syntax:</strong> AuthPGAnonymous &lt;on | <strong>off</strong>(default)&gt;<br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+Turning on AuthPGAnonymous directive enables a user to be validated by the anonymous user name set by the AuthPGAnonymousUserName directive without the password. 
+
+<h2><a name="anonymoususername">AuthPGAnonymousUserName</a></h2>
+<strong>Syntax:</strong> AuthPGAnonymousUserName <em>username</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGAnonymousUserName directive sets the anonymous user name used when the AuthPGAnonymous directive is turned on.
+
+<h2><a name="cookie">AuthPGCookie</a></h2>
+<strong>Syntax:</strong> AuthPGCookie &lt;on | <strong>off</strong>(default)&gt;<br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGCookie directive controls whether this module will fake the authentication by the cookie or not.
+
+<h2><a name="cookiename">AuthPGCookieName</a></h2>
+<strong>Syntax:</strong> AuthPGCookieName <em>cookie_name</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<strong>Default:</strong> <code>AUTHPG</code><br>
+<p>
+The AuthPGCookieName directive sets the name of the cookie containing the username and password pair. The cookie has the form like `<code>AUTHPG=</code><em>username</em><code>:</code><em>password</em>'. `<code>:</code>' is the separator and can be changed using AuthPGCookieSeparator directive.
+
+<h2><a name="cookieseparator">AuthPGCookieSeparator</a></h2>
+<strong>Syntax:</strong> AuthPGCookieSeparator <em>separator</em><br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<strong>Default:</strong> <code>:</code><br>
+<p>
+The AuthPGCookieSeparator directive sets the character used to separate the userid and password.
+
+<h2><a name="authoritative">AuthPGAuthoritative</a></h2>
+<strong>Syntax:</strong> AuthPGAuthoritative &lt;<strong>on</strong>(default) | off&gt;<br>
+<strong>Context:</strong> directory, .htaccess<br>
+<strong>Override:</strong> AuthConfig<br>
+<strong>Status:</strong> Extension<br>
+<p>
+The AuthPGAuthoritative directive plays the same role as the Auth*Authoritative directives in other mod_auth_* modules.
+
+</body>
+</html>

