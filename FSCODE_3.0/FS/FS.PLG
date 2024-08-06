@@ -1,0 +1,28 @@
+--------------------Configuration: FS - Win32 Release--------------------
+Begining build with project "C:\FS\FS.DSP", at root.
+Active configuration is Win32 (x86) Application (based on Win32 (x86) Application)
+
+Project's tools are:
+			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /Fp"Release/FS.pch" /Yu"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c "
+			"OLE Type Library Maker" with flags "/nologo /D "NDEBUG" /mktyplib203 /o NUL /win32 "
+			"Win32 Resource Compiler" with flags "/l 0x409 /fo"Release/FS.res" /d "NDEBUG" "
+			"Browser Database Maker" with flags "/nologo /o"Release/FS.bsc" "
+			"COFF Linker for 80x86" with flags "/nologo /subsystem:windows /incremental:no /pdb:"Release/FS.pdb" /machine:I386 /out:"Release/FS.exe" "
+			"Custom Build" with flags ""
+			"<Component 0xa>" with flags ""
+
+Creating temp file "C:\WINDOWS\TEMP\RSP8051.TMP" with contents </nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /Fp"Release/FS.pch" /Yu"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\FS\FS.cpp"
+"C:\FS\FSDlg.cpp"
+>
+Creating command line "cl.exe @C:\WINDOWS\TEMP\RSP8051.TMP" 
+Creating command line "link.exe /nologo /subsystem:windows /incremental:no /pdb:"Release/FS.pdb" /machine:I386 /out:"Release/FS.exe"  .\Release\FS.obj .\Release\FSDlg.obj .\Release\StdAfx.obj .\Release\FS.res" 
+Compiling...
+FS.cpp
+FSDlg.cpp
+Generating Code...
+Linking...
+
+
+
+FS.exe - 0 error(s), 0 warning(s)
