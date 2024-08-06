@@ -1,0 +1,400 @@
+ÚÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ÉÍÍÍÍÍÍÍÍ» ³File: CPUTYPE.DOC ³Subject: CPU/FPU feature detection library.  ³
+³ÌÍÍÍÍÍÍÍÍÊ»ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ºÖÄÖÄÒÄÒ· º³Date: 04/09/95 ³       Copyright(c) 1992-95 by B-coolWare.      ³
+³ºÓÄĞÄĞÄ½ÓÄº³Version: 1.17  ³ This document should not be changed in any way ³
+³ÈÍÍÍÍÍÍÍÍÍ¼³Revision:05/05 ³and should be distributed with related software.³
+ÀÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+ Document no.: LR-0006.93.95M05.05
+
+					   "...Too much is not enough."
+							(Deep Purple)
+
+
+Contents
+~~~~~~~~
+1. License Agreement.
+2. How to contact the author.
+3. Library Features and Notes.
+4. Copyrights and Credits.
+5. Known incompatibilities.
+6. Files in distribution.
+7. References.
+
+
+1. License Agreement.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ This license regards to the Too-Much-In-One-So-Don't-Get-Lost(tm) CPU/FPU
+   detection library version 1.17 dated 04/09/95, mentioned hereafter as
+   "source code". It describes your rights, obligations and liabilities as for
+   this source code. It took much time to gather all information used to
+   produce this code, so the main purpose of this license is to grant anyone
+   free access to it. Use it free, give away to anyone, but please do not
+   sell or lease it - it's not your work, and if you think someone should be
+   paid for it, you're not the rite person anyway.
+ Note that although some terms of this license resemble with GNU License
+   Agreement, it is not GNU product. Author reserves some specific rights for
+   this product which GNU rules forbid to reserve.
+   
+ Here it goes:
+
+ SOFTWARE STATUS AND COPYRIGHT:
+ This source code is free copyrighted software. This means that the author
+   reserves copyright for this code. This doesn't mean however that you cannot
+   use, distribute or modify the code. This just means that you cannot reserve
+   copyright for this code or charge money for it. However you may reserve
+   copyright for any changes/additions you made to it. See details hereafter.
+
+ YOUR RIGHTS AND LIABILITIES:
+ You have legal rights to copy, distribute, modify and use entire code or parts
+   of it in noncommercial software with no limitations. You can also use this
+   code in commercial software (including shareware), provided that the key
+   features of such software are not based on this code (like they are in
+   System Information tools, for example). Use of the code in such commercial
+   products requires author's written permission. If you do publish any
+   commercial software that does not fit these requirements, your rights are
+   automatically void and you'll be liable for violation of the Russian
+   Copyright Law in Computer Programs and Databases as well as other laws and
+   international provisions regarding to intellectual property and copyrights.
+   Parties that acquired this source code from you will still have their rights
+   for the source code as long as they comply with terms of this license. 
+
+ YOUR OBLIGATIONS:
+ The source code SHOULD be distributed along with this license and you should
+   document any changes made to it either in source files or in additional
+   documents. The code cannot be distributed partially, you should include all
+   files that build the library plus any additional files needed to compile it
+   in the distribution archive/set. Although you are not obliged to distribute
+   library sources with your products if you do not publish their source code.
+   Regardless of the extent of modifications made by you to this source code,
+   it should remain free, and you should provide a way for anyone (and parti-
+   ally the author :) to obtain his own copy as of original, so as of modified
+   code. Although you can reserve copyright for modifications, the rest of the
+   code will still be copyrighted by B-coolWare and you should keep the
+   copyright notice in the code unchanged.
+
+ WARRANTIES:
+ This source code is provided "AS IS" with no express or implied warranties, 
+   including any implied warranties of code quality, errorlessness or fitness
+   for a particular purpose. Author can only guarantee that the code will
+   occupy your disk space. If you modify the source code included herein,
+   please add a notification about it and complete description of what and how
+   you modified, so that subsequent users of this code will know that they use
+   not original but rather modified version of the code. 
+
+ AUTHOR'S LIABILITY:
+ In case of any damage caused by use, or misuse, or inability to use, this code
+   or any other kind of decease including loss of business profits or valuable
+   information, author shall not be liable for it. Any warranties regarding to
+   the quality of this code, or its errorlessness are hereby expressly
+   disclaimed.
+
+ AUTHOR'S EXCLUSIVE RIGHTS:
+ Author reserves the right to change this code entirely or partially without
+   notification to its users. He also reserves the right to use this code in
+   any manner in any commercial or non-commercial software of any kind and
+   give it away to anyone who ask. And he also reserves the right to change
+   software legal status (to shareware, for example) in future releases as he
+   sees fit.
+
+Huh...! Hope I made every effort to keep the lawyers happy... :)
+
+
+2. How to contact the author.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ If you have any questions, suggestions or usable information on how to
+ improve this product, feel free to contact author at
+
+ e-mail (preferrable):
+
+ 2:5028/52.6@fidonet
+ loki@cnit.uniyar.ac.ru (internet)
+
+
+ phone:
+
+ +7-(0852)-274-551 (9:00am to 6:00pm, Moscow Time) voice\data 14400/V.32b\fax
+
+ please don't call earlier or later - gimme a break...
+
+ surface (paper) mail:
+
+ 150031, 10/4/13,
+ Dobrynina Str.,
+ Yaroslavl,
+ Russia
+
+ Vladimir M. Zakharychev (‚« ¤¨¬¨à ‡ å àëç¥¢) aka Bobby Z.
+
+ Calls and letters both in English and in Russian are welcome. Please do not
+ speak/write in any other language if you want to be answered. Letter bombs
+ will be returned to sender :) shhhh-boom-BANG!
+
+
+3. Library Features and Notes.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ The Too-Much-In-One-So-Don't-Get-Lost(tm) CPU/FPU feature detection library
+ allows you to distinguish between following 80x86 family CPUs:
+
+ Intel 8088,8086,80188,80186,80286,80386DX,80386SX,i486DX,i486SX,Pentium,iP54,
+ iP24T (Pentium OverDrive), P6,
+ NEC V20 and V30,
+ AMD Am386SX-40 and Am386DX-40, Am486DX2, DX2+, DX4, DX4+ (recent models),
+ Cyrix Cx486SLC/SLC2/S/S2/SE/S2E/SR/SR2/DLC/DLC2/DR/DR2/DX/DX2 and M1,
+ Texas Instruments Ti486SXL,
+ on newer 486s also determines SX/DX/DX2/DX2WB/SL/DX4/OverDrive model,
+ UMC U5-S, U5-D (486s),
+ NexGen Nx586,
+ IBM 386SLC, 486SLC/SLC2 and 486BL3 (Blue Lightning).
+
+ FPUs:
+
+ Intel 8087,80287,80287XL - not 100% reliable,80387,i487sx and 487 internal,
+ Cyrix 82x87,83x87, 84x87 and EMC87,
+ IIT 2C87, 3C87 and 4C87;
+ ULSI 82x87 and 83x87,
+ C&T 38700;
+ Weitek 1167 and 1367, both reported simply as Weitek;
+
+ determine whether or not the processor is in V86 mode (for DOS programs only)-
+ generally this one just tests for PM flag and assumes V86 if it is set for DOS
+ + PM combination automatically leads to V86;
+
+ determine 386dx chip step (B0 or earlier,B1,D0 or later) - 
+  this one tests for known bugs in chips of these steps, it does not reset CPU
+  to look at EAX value; doesn't work under Windows;
+
+ determine CPU clock speed (for all listed processors, was not checked on some
+ models and may require some adjustments). Works fine under _my_ Windows, but
+ some people stated it produced incorrect results on their systems;
+
+ determine 386 and 486 chip model for Intel chips when ran in real mode.
+
+ Notes.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Note 1:
+
+ The source code is commented so I didn't include its description here. I think
+ there'll be no problem using it. I also included samples in Turbo Pascal and
+ Turbo C, which can be easily incorporated into your hi-level programs. Lotta
+ probs vanished, heh :)
+
+ Note 2:
+
+ I have no access to Cyrix M1 machines and thus can't check and fix CPU timings
+ in CPUSPEED.ASM for this processor. This may lead to inadequate MHz
+ reported. If anyone have time and access to an M1-based machine I'd like
+ you to check this and fix CPUFix value if needed. And don't forget to contact
+ me and send me adjusted value so I'll be able to fix it by myself! Also
+ please check if M1 is correctly identified - I'm not quite sure it will. 
+ Also, the timings for P6 are obviously incorrect and need to be adjusted.
+
+ Note 3:
+ 
+ Take a look at the batches I provided to simplify compile process and
+ correct paths and parameters where needed before running them. This is
+ especially true for MAKEC.BAT and MLIB.BAT, for they contain paths I used on
+ my PC to compile C version of code. The same modifications required for
+ MAKEFILE.
+
+ Note 4:
+
+ Some words on SMM detection routine and i486s. Current method uses UMOV
+ instruction to detect whether SMM is supported by CPU. According to Intel
+ sources, this instruction is actually works on i486s with ICE (In-Circuit
+ Emulator) support and don't trap with Exception 06 on it, while i486 with
+ real SMM support doesn't execute this instruction and trap with Exc. 06.
+ Actually, this means that on i486s SMM is detected when it is not supported
+ and vice versa. SMM and ICE details are not clear even at Intel itself, so
+ I can't say more at this time. Just note, that [SL Enhanced] flag on i486
+ may be incorrectly reported when CPU is actually NOT SL Enhanced and vice
+ versa. I'm not sure of anything related to SMM, ICE and UMOV instruction.
+
+
+4. Copyrights and Credits.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ This appendix contains names and netmail addresses of people who contributed
+  to this product in any way, either by adding any methods or by fixing
+  existing methods given incorrect results. If you do such additions or fixes,
+  please contact me and send modified version of the code so that I'll be able
+  to incorporate changes in next releases.
+
+ The TMi0SDGL(tm) library is Copyright(c) 1992-95 by B-coolWare.
+ Portions copyright(c) by 2B Programmers.
+ Portions copyright(c) by A. Konosevich.
+ Portions copyright(c) by I. Tumanov.
+ Portions copyright(c) by Lautenaus (Sergei Frolov).
+
+ This library would never be what it is without help of many people shared
+ their knowledge, ideas and code with me. Just to mention most contributed
+ of them:
+
+ My thanx to
+
+ 1. Igor Dral of 2:50/321@fidonet
+    who helped me lot in cleaning the code of bugs, testing, etc. Thanx, pal!
+
+ 2. VAP of 2:5028/52.6@fidonet (he's my BOSS),
+    who helped me with C code - I don't like this language myself :)
+
+ 3. Alex B. Shamarokov of 2:5020/205.8@fidonet
+    who awared me of strange behavior of the code on new Intel' chips with
+    CPUID support, so I did an attempt to fix it in v1.14c. He also helped a
+    lot with later versions.
+
+ 4. Janis Smits of 2:5100/25@fidonet
+    who awared me of OS/2 problems and pointed out the origin of them, and
+    provided 486 model codes returned by CPUID.
+
+ 5. Ilya Tumanov of 2:5030/82.6@fidonet
+    who advised me to add integer CPU MHz calculations for those who want only
+    rough approximation of clock speed and provided 386/486 model retriever.
+
+ 6. Igor Krasikov of 2:463/59@fidonet
+    who first among others told me how to detect OS/2 reliably (I should read
+    Ralf's IntList more thoroughly...) and made some other bugfixing.
+
+ 7. Aleksandr Konosevich of 2:5004/9.7@fidonet
+    for shorter Cyrix CPU detection code. 
+
+ 8. Sergei Frolov of 2:5030/219.9@fidonet
+    for P24D distinguishing code and Cyrix/TI models distiguishing code. He
+    also helped a lot with cleaning code of bugs.
+
+ 9. Christian Ludloff of 2:2426/2240.14@fidonet aka cl@box.in-chemnitz.de
+    for 4P package and its excellent documentation. I derived many ideas from
+    the 4P.
+
+10. Dima Orlov of 2:461/27.1@fidonet
+    for corrections to Pascal version of the code.
+
+11. Roman Gasteff of 2:5020/177.8@fidonet
+    for his help in getting rid of OS/2 traps.
+
+12. Vadim Selivanow of 2:5015/17@fidonet
+    for NexGen Nx586 information and detection code. He also helped a lot with
+    testing and debugging.
+
+13. Levan Natroshvili of 2:446/1@fidonet
+    for information on SMM, ICE and UMOV instruction on i486s (see Note 4 in
+    notes section).
+
+14. Vsevolod Fedotov of 2:5005/2@fidonet
+    for his angry e-mail about my coding style :) Anyway, he reported some bugs
+    and helped me to make this code better.
+
+15. YOUR NAME MIGHT BE HERE...
+
+ And, of course, thanks to Almighty God for the inspiration and everything, 
+   and all of you, who paid attention to this product, spent your invaluable
+   time testing it and sending me bug reports and maybe even made use of it!
+
+
+5. Known incompatibilities.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1. Under Soft-Ice 2.62 and below incorrectly states 386DX to be 386SX. This
+    is because Soft-Ice's V86 monitor do not allow to toggle ANY flags in
+    CR0 from V86 task. All other CPU identifiers does just such a mistake
+    under Soft-Ice. Let's hope Nu-Mega will fix their monitor in future
+    versions of this nice debugger so we'll be able to get correct results. :)
+    The same thing happens in Borland Pascal protected mode applications due
+    to Borland's DPMI host but under it 486SX/DX detection also doesn't work.
+
+ 2. Under Windows 3.1 386 chip stepping determination routine crashes DOS
+    session due to "invalid instruction". This is due to Windows exception
+    handler implementation: it doesn't reflect exception 6 to real mode
+    interrupt handler. The fix is: do not invoke this routine under Windows.
+
+ 3. In OS/2 DOS box with HW_TIMER set to OFF clock frequency gets divided by 2.
+    I didn't find a workaround other than run DOS application with HW_TIMER=ON.
+    I tried to find a "begin/end critical section" call to OS/2's DOS CompBox
+    API and failed. If anyone knows of correct and reliable way to enter/leave
+    critical section under OS/2 please let me know (but seems there's no such
+    call...).
+
+ 4. Protected mode applications made in Borland Pascal 7.0 using Borland's
+    DPMI host 1.0 may terminate with Runtime Error 216 (General Protection
+    Fault) if ran from real mode or under some older memory managers. This is
+    due to the host implementation: it does not allow to read from or write to
+    CR? registers from PL other than 0. Normally, most of memory managers and
+    DOS Extenders intercept exception 13 and performs offending instructions
+    on ring 0 returning results to application issued invalid instruction, but
+    DPMI16BI doesn't. The only possible workaround is to kick some asses in
+    Borland and make 'em fix their host. :) And upgrade your memory manager to
+    QEMM-386 7.52 or later - this'll solve many of your problems!
+
+ 5. IBM's SLC chips won't be detected unless the CPU is in real mode. This is
+    due to use of RDMSR instruction which generates GPF if MSR index is
+    invalid. Because IBM's SLC CPUs have unusual MSRs #1000h-#1003h,
+    executing RDMSR with these indeces will by no means cause GPF on all
+    non-IBM chips. Under all memory managers I tested, this exception is not
+    passed to real mode interrupt handler, so the detection method just crashes
+    the computer under them. In real mode this exception can be easily hooked
+    and resolved.
+
+ 6. SMM support test can crash Windows 95 DOS session if ran on CPU without
+    SMM support. This is true for P5 processors and likes. Possible workaround
+    is to check whether the CPU is P5 or the like and do not invoke SMM test
+    in this case. If Windows 95 is running under QEMM 7.x then this error won't
+    occur. This is due to Windows 95 V86 manager which doesn't pass Exception 6
+    to V86 interrupt handler for this vector.
+
+
+6. Files in distribution.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Original issue of the source code as of version 1.17 include:
+
+ File         Description
+ ------------ ----------------------------------------------------------
+ CPU_TYPE.ASH Main library module for ASM programs.
+ DOSINOUT.ASH DOS Input/Output routines.
+ LSTRING.ASH  Lstring macro to define Pascal-style length,data strings.
+ HEADER.ASH   Assembly language header file - memory model definition, etc.
+ UNIDEF.INC   Assembly language macros.
+ CPU.ASM      Sample program demonstrating usage of CPU_TYPE.ASH.
+ CPUSPEED.ASM CPU clock speed determination routine.
+ SPEED.ASH    Assembler version of CPUSPEED.
+ CPU_HL.ASM   Main library module for use with hi-level languages.
+ CPU.C	      Sample program in C.
+ CPUTYPE.C    C library implementation.
+ CPUTYPE.H    C library interface.
+ CPU.PAS      Sample program in Pascal.
+ CPUTYPE.PAS  Pascal library interface & implementation.
+ P5INFO.ASM   Low level routines for P5INFO.C and P5INFO.PAS.
+ P5INFO.C     Sample program providing basic info on P5 in C.
+ P5INFO.PAS   Sample program providing basic info on P5 in Pascal.
+ MAKEA.BAT    Make batch for assembly-language version.
+ MAKEP.BAT    Make batch for pascal version.
+ MAKEC.BAT    Make batch for C version.
+ MLIB.BAT     Make batch to build C/C++ .lib library file.
+ YESNO.COM    Batch service program, displays prompt and waits for Y/N.
+	      btw, can you make it shorter than these 72 bytes? :)
+ README.1ST   Readme file. You should already been read it...
+ SMM.ASM      SMM test routine.
+ MODEL486.ASM Routine to get chip model/submodel code.
+ CXMODEL.ASM  Routine to get Cyrix/TI chip model code.
+ TEST486.PAS  Sample program making use of MODEL486.ASM.
+ HISTORY.DOC  History of changes.
+ VMZ.ASC      My PGP public key.
+
+
+7. References.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Most of information used to produce this code was derived from various
+programs via reverse engineering, so I won't reference them here. Some useful
+sources:
+
+Ralf Brown's Interrupt List (current release number is 47), OPCODES.LST file.
+The Interrupt List can be obtained at number of places: on SimTel Software
+Repository and mirrors, at ftp://ftp.cs.cmu.edu/afs/cs.cmu.edu/user/ralf/pub,
+and on almost every BBS worldwide. Also, visit Ralf's home page on the Web at
+http://www.cs.cmu.edu:8001/afs/cs.cmu.edu/user/ralf/pub/WWW/ralf-home.html
+
+Christian Ludloff's 4P package, 80X86.CPU file. This package is the must for
+every PC systems programmer. The 4P package v3.1.1 can be obtained at 
+ http://fohnix.metronet.com/~rcollins/4p/4p_v311.zip.
+You can also read the 80x86.cpu using your favorite Web browser: 
+ http://fohnix.metronet.com/~rcollins/4p/80x86.cpu.toc.html
+
+
+                          << end of CPUTYPE.DOC >>

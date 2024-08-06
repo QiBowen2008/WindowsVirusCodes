@@ -1,0 +1,198 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+
+ ... README.1ST ........................... TMi0SDGL(tm) Companion Document ...
+ Document no.: T-0018.94.95M01.11
+
+                        *** A T T E N T I O N ***
+
+ Please read this document before you proceed with the rest of the library.
+ 
+ Throughout this document 
+ "this code" and "the code" ð "TMi0SDGL(tm) Version 1.17 dated 04/09/95".
+
+ This archive contains the TMi0SDGL(tm) Version 1.17 CPU/FPU Feature detection
+ library by B-coolWare. The time stamp on all files in this archive should be
+ 01:17:00. If it differs on any of the files then you have modified version of
+ this file.
+
+ Please keep this archive somewhere on your backup device - I intend to release
+ minor upgrades of the library in form of binary patches to save space. You
+ will need the original to apply these patches.
+
+ Do not hesitate to distribute this archive. Give it to your friends, upload
+ to your favorite BBSes and FTP sites. The wider it'll spread - the better.
+
+
+ Contents
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Distribution
+  Info Wanted
+  DPMI compatibility issues
+  For those having problems with the code in certain environments
+  To Do list
+  How to contact author
+  Authenticity verification
+
+
+  Distribution
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ The most recent version of the library can be obtained at:
+
+ the Armory  +7-(0852)-274-551, 20:00-07:00 MSK(GMT+03:00), Monday - Thursday.
+             1 node at 14400bps. FREQ/DL: CPU*.ZIP
+
+ It is also regularly posted in FIDOnet echoes RU.HACKER.UUE and RU.UUENCODE
+ and can be obtained on many russian BBSes.
+
+ I also plan to upload it on some anonymous FTP sites, though I didn't decide
+ which ones to choose yet.
+
+ You are free to distribute it on non-commercial basis i.e. if you don't charge
+ money for it. Distribution on free/shareware collection CD-ROMs is NOT
+ prohibited, but if you do, you better contact me first for the most recent
+ version.
+
+
+  Info Wanted
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Currently I have no information on how to distinguish Texas Instruments CPUs
+   from Cyrix CPUs and how to retrieve model information from TI chips.
+ - Also any information on AMD's Am486 chips wanted (except those with CPUID
+   support, namely 486DX2,DX2+,DX4 and DX4+) - differences from Intel chips in
+   hardware implementation and in instruction set, etc.
+ - I also would like to get any useful information on AMD's K5 processor:
+   availability, features, CPUID returns.
+ - Christian Ludloff stated that he knows a way to get to PL0 from V86 task
+   under EMM386 and likes and IT WORKS! (but he didn't unveil the technique).
+   I definitely want to know HOW! This will eliminate lots of problems with
+   the code reliability.
+
+
+  DPMI compatibility issues.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ This code is fully DPMI compatible. Although only Borland Pascal 7 users
+ can use this code in protected mode programs without any handwork. Because
+ of many differences in different C/C++ compilers' protected mode memory
+ model definitions I do not provide MAKE script for making protected mode
+ applications using TMi0SDGL with C/C++. You should build protected mode
+ library manually:
+ 
+ 1. compile CPU_HL.ASM and CPUSPEED.ASM with __DPMI__ define and add .OBJes
+    to library you will use with protected mode application (CPUTYPEX.LIB, for
+    example);
+ 2. compile SMM.ASM, CXMODEL.ASM and P5INFO.ASM and add them to the same
+    library;
+ 3. compile CPUTYPE.C with corresponding memory model (DOSX, etc.) and add
+    .OBJ to the library.
+
+ Now (I hope) you should be able to build protected mode applications using
+ TMi0SDGL with your C/C++ compiler.
+
+
+  For those having problems with the code in
+   certain environments.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ This code haven't been extensively tested on all CPUs it theoretically should
+ recognize. I performed extensive tests only on systems available to me which
+ include:
+
+ 1. AMD Am386DX-40/Intel 80387DX
+    running MS-DOS 5.0, QEMM 7.04 + DESQview 2.63, Windows 3.11
+ 2. Intel i486DX2-66
+    running MS-DOS 6.2, QEMM 7.04, Personal NW, Stacker 4.0, 
+    Windows 3.10 Russian
+ 3. GenuineIntel i486SX-40/None
+    running MS-DOS 6.2, QEMM 7.01, Windows 3.10
+ 4. Intel 80286-10/Sun SPARCStation 1+ emulating 80286
+ 5. Intel 80386SX-25/Intel 80387SX
+    running MS-DOS 6.2/MemMaker, Windows 3.10 Russian
+ 6. AMD Am386DX-40/Cyrix Cx87SLC
+    running Novell DOS 7, Personal NW, Windows 3.10
+ 7. Intel i486DX-50
+    running MS-DOS 6.2, Windows for Workgroups 3.11
+ 8. Intel Pentium-S/60
+    running Windows 95 build 950r2
+ 9. Cyrix Cx486DX-40
+    running Windows 95 build 950r2
+10. GenuineIntel i486DX-33
+    running MS-DOS 6.0/MemMaker, Windows 3.10
+11. AMD Am386DX-40/IIT 3C87
+    running MS-DOS 5.0, QEMM 7.52, Windows 3.10
+12. Cyrix Cx486DX2-50
+    running MS-DOS 6.2, Windows for Workgroups 3.10
+13. P5-66 (step 7, no FPU bug)
+    running MS-DOS 6.22, QEMM 7.52, Windows 3.10
+14. AMD Am486DX4-100
+    running MS-DOS 6.22, QEMM 7.52, Windows 3.10 Russian
+    or Windows 95 Final Beta Release (build 337)
+15. GenuineIntel i486DX2-50
+    running MS-DOS 6.22 Russian/MemMaker, Windows 3.10 Russian
+
+ On all listed systems the code appeared to work fine giving correct results
+ under all listed environments except [1,6] when running Soft-ICE 2.62 -
+ incorrectly stated that CPU is 386SX. I cannot guarantee that the code will
+ run o.k. on systems with other configurations/operating environments, though
+ I hope it will. Please don't bomb me with letters like "wow! this thingie
+ crashes my PC with such and such CPU/FPU under such and such env." - you got
+ full sources, and you should know how to use a debugger if you know how to
+ program, so try to find out the origin of the problem on YOUR system (and
+ maybe a workaround) before reporting it.
+
+
+  To Do list.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ This is the list of changes/additions planned in future versions of TMi0SDGL.
+
+ - adjust P6 and NexGen Nx586 timings for correct clock speed detection;
+ - eliminate OS/2 traps where possible (or write a version for OS/2);
+ - add AMD Am486 detection (at least I hope so);
+ - add more TI models;
+ - try to find more convenient way to detect IBM's ?86SLC? chips (currect
+   method works only in real mode and I'm not sure of it).
+
+ I'm going to rewrite the whole library from the ground up. The current code
+ was initially written over 3 years ago and was only expanded and modified
+ since then. Currently it is very unoptimal and hard to read. This is shortly
+ the main reason why I'm up to rewrite it.
+
+
+  How to contact author.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ If you found a bug or have any questions/suggestions about TMi0SDGL or have
+ some code/information to donate, you can reach me at
+
+   2:5028/52.6@fidonet aka 2:5028/51.10@fidonet (Vladimir Zakharychev)
+
+   or
+
+   loki@cnit.uniyar.ac.ru (internet)
+
+ For phone and paper mail address see the CPUTYPE.DOC file.
+
+
+ Thanx for yer attention. Now you can proceed with the rest of the library. See
+ HISTORY.DOC for modification history and CPUTYPE.DOC for license agreement,
+ copyrights and contact info.
+
+
+  Authenticity verification.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Starting with version 1.16c I'm adding the PGP public key to the archive and
+ signing this file (README.1ST) using PGP 2.6. Those going nuts of security
+ may use PGP 2.6 or later to check the signature and ensure that this archive
+ came from me. Public key is in file VMZ.ASC.
+
+ Please note that PGP versions prior to 2.6 won't work properly with this
+ key. If you don't have PGP 2.6 or later, you won't be able to check the
+ signature. I can do nothing about it, blame MIT guys for this inconvenience...
+ or better obtain new version.
+
+                           << end of README.1ST >>
+
+-----BEGIN PGP SIGNATURE-----
+Version: 2.6
+
+iQBVAwUBMEqejPbKyL3eqgyJAQFHgwH/SqPaypqhglMNZu2S9SkPK2jyXvi4obtz
+5TnEsRS9Yrx1zPTlkAMYWB9Y7jqtgdVZpnFXhiJU9FO0LeWnAtf4Fg==
+=xQOL
+-----END PGP SIGNATURE-----

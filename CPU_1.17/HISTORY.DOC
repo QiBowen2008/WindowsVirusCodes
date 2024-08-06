@@ -1,0 +1,293 @@
+ ... HISTORY.DOC .......................... TMi0SDGL(tm) Companion Document ...
+ Document no.: N-0014.94.95M01.16
+
+                  TMi0SDGL(tm) Version 1.17 - HISTORY.DOC
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ History of changes.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ TMi0SDGL(tm) version 1.10d was the first version publicly released.
+
+ Differences between version 1.10d and version 1.11:
+
+ - changed 80287XL determination logic: now this conclusion is made if CPU
+   is 80286 and FPU tests as 80387;
+ - added IIT (Integrated Information Technology, Inc.) xC87 math coprocessors
+   detection;
+ - fixed bug in 386 stepping detection routine.
+
+ Differences between versions 1.11 and 1.11b:
+
+ - fixed bug that caused FPU_Type routine to hang on 486s: they don't handle
+   IIT bank switching instructions at all, stopping CPU.
+
+ Differences between versions 1.11b and 1.12:
+
+ - distinguish between Cyrix 486SLC and 486DLC made reliable;
+ - code distinguishing between 386sx and 386dx that used bug in dx chips 
+    deleted (it was commented out in previous versions) - current method is
+    absolutely reliable;
+ - code slightly optimized to reduce size.
+
+ Differences between versions 1.12 and 1.12b:
+
+ - some slight modifications made to CPUSPEED.ASM module to prevent invalid
+   computation of clock frequency for unknown CPUs.
+
+ Differences between versions 1.12b and 1.13:
+
+ - added 386sl detection routine, but wasn't checked yet: at least it doesn't
+   hang the PC :); 
+ - distinguishing between i486sx and i486dx finally made reliable;
+ - code slightly optimized;
+ - CPUSPEED.ASM enhanced and recommented to reflect new CPU type addition.
+
+ Differences between versions 1.13 and 1.14:
+
+ - reduced source file size of CPUSPEED.ASM;
+ - Test_Buffer routine made reentrant ( at last! :);
+ - added newer 386 and 486 recognition ( ID flag of EFLAGS is flippable and
+   CPUID instruction works on new 386s and 486s so I took precaution of
+   this situation);
+ - described method of identifying AMD's 40MHz 386s and a little bit tricky
+   method of identifying i486DX2/66 chips;
+ - added method of identifying Cyrix M1 (586) chip - was not checked yet;
+ - 386SL detection code commented out, but still present - maybe it works on
+   some chipsets...
+
+ Differences between versions 1.14 and 1.14b:
+
+ - added hi-level interfaces and sample programs,
+   Turbo Pascal 7.0, Turbo C 2.0 and Borland C++ 3.1 were used to compile these
+   examples, they appeared to work o.k.;
+ - added i487sx detection;
+ - corrected Cyrix chips id's - there are also SX and DX chips;
+ - added Known Incompatibilities list;
+ - wow! this thingie's gettin' really BIG, ain't it..?
+
+ Differences between versions 1.14b and 1.14c:
+
+ Lots o'bugs fixed in this version:
+
+ - fixed bug in hi-level routines that caused Intel 386/33 chips to be
+   identified as AMD ones;
+ - finally got rid of DOS session crashes under Windoze in assembly-language
+   version on 386dx-based systems; also, the code made Windoze-aware in
+   time-critical sections so it won't bother me (and you) anymore;
+ - added makeX.bat batches to simplify compile process. Of course paths and
+   parameters should be adjusted in 'em;
+ - finally fixed code for new 386+ chips which handles CPUID instruction -
+   this command appeared to destroy some registers I used to hold temp data.
+   Too bad I haven't Pentium data sheet :( - this bug could never appear...
+ - added new module P5INFO.ASM and two sample programs in Pascal and C demon-
+   strating it's usage - Pentium (and predecessors with cpuid enabled) feature
+   info lister. This is rough approach - when I have a P5 data sheet I'll add
+   more info;
+ - fixed OS/2 DOS Session crash problem on 486 systems - that ugly OS doesn't
+   allow to flip NE bit of CR0 hanging up the PC;
+ - this thing became really BIG now - 36K in ZIP. I think it's time to stop.
+   But I'll still develop it if you, users, will tell me I should.
+
+ Differences between versions 1.14c and 1.14d:
+
+ - I took some time and finally adjusted CPU timings so that CPUSpeed routine
+   produce more precise results but it still may give inadequate values on
+   certain CPUs from different vendors - there's so many of them;
+ - fixed obvious bug in P5Info - Make string is returned by CPU itself in
+   EBX,EDX,ECX registers, so I fixed it;
+ - made an approach to recognize UMC's U5 chips in hi-level routines;
+ - slightly modified hi-level interfaces to adapt them to new approach;
+ - optimized OS/2 detection routine;
+ - added Note 7 in dox - PLEASE READ IT BEFORE SENDING ME BUG-REPORTS!;
+ - stripped comments from CPU_HL.ASM - this is just a port from CPU_TYPE.ASH
+   which contain 'em all;
+ - added integer-only CPU speed calculation routines (got rid of fp), although
+   you'll lose precision using them;
+ - added DESQview calls Begin/End critical section in CPUSPEED.ASM;
+ - tested under Quarterdeck DESQview 2.63 - caused no probs on my Am386DX-40
+   system, MHz computed correctly.
+
+ Differences between versions 1.14d and 1.14e:
+
+ - Fixed an obnoxious bug in CPU_HL.ASM that caused P5 misidentification;
+ - fixed reporting Cyrix chips - only SLC is now distinguished from other
+   Cyrix's 486s;
+ - again fixed P5Info report - feature flags were shifted somehow;
+ - Note 7 moved to separate file README.1ST, and you SHOULD READ IT.
+
+ Differences between versions 1.14e and 1.14f:
+
+ - SMM test added, batches adjusted to reflect this addition;
+ - added one more P5 feature flag description to P5Info programs.
+
+ Differences between versions 1.14f and 1.14g:
+
+ - rewritten OS/2 detection routine, several bugs under OS/2 evaporated;
+ - added 486 SX/DX/DX2/DX4/SX2/SL/Overdrive distinguishing for newer CPU models
+   with CPUID support (thnx 2 Janis Smits once again for model codes), but
+   this new code is not tested yet!!! It shouldn't cause any trouble but it may
+   misidentify some 486s...
+ - some other bugs are being chased right now :-E~ ...
+
+ Differences between versions 1.14g and 1.14h:
+ Damn it! Previous version was full of bugs :(
+
+ - finally made the code able to run in protected mode. Now you can really
+   uncomment those commands in makep.bat that create protected mode .exe;
+ - found that old 486SX/DX detection method doesn't work under Borland's DPMI
+   host. I gotta find other way to determine this...
+ - fixed bug that prevented new 486SX/DX/DX2/etc. detection code from
+   execution, also avoided FPU checking for new CPUs with FPUonChip flag set;
+ - calling convention changed to pascal everywhere (though there should not
+   be any probs in upgrading your C/C++ applications for the rest of library
+   was not changed);
+ - added MAKEFILE for those who prefer using MAKE to build projects;
+ - some other minor fixes made.
+
+ Differences between versions 1.14h and 1.15:
+
+ - added new code detecting 386 and 486 model without using CPUID instruction
+   and sample program demonstrating its usage;
+ - makefile updated to reflect this addition;
+ - added FPU emulator detection;
+ - added P24D detection code;
+ - Cyrix misidentification under Windows fixed;
+ - C code rearranged for compatibility with Microsoft C[++].
+
+ Differences between versions 1.15 and 1.16BETA:
+
+ - some spelling mistakes fixed in several files;
+ - MAKEC.BAT and MLIB.BAT modified to simplify paths setting. Now environment
+   variables INCLUDE and LIB used to determine corresponding paths;
+ - added Cyrix CPU models distinguishing code by Sergei Frolov;
+ - added code that should distinguish IBM's 386SLC, 486SLC and 486SLC2 chips;
+ - assembler version of code rewritten to allow CPU speed report;
+ - fixed some bugs appearing on 8086 and 80186 (I recently found machines with
+   these ancient CPUs installed and found that TMi0SDGL hangs on them, so I
+   took a look inside and fixed it);
+ - changed P24D detection code, added P6 detection code
+   (!!! P6 speed timings needs to be adjusted);
+ - fixed obvious bug in SMM.ASM that caused GPF on systems without SMM support;
+ - fixed 386 detection routine in SMM detection module which failed on 8086.
+
+ Differences between versions 1.16BETA and 1.16BETA_2:
+
+ - fixed MAKEP.BAT and YESNO.COM;
+ - added Texas Instruments Ti486SXL detection;
+ - tried to fix hangup problem on 8086s (changed all FINITs to FNINITs);
+ - changed U5 chips detection code - now it should detect all steps of U5;
+ - CPUs with SMM support are now claimed as "SL Enhanced";
+ - the License Agreement slightly edited;
+ - some spelling corrections made in various places.
+
+ Differences between version 1.16BETA_2 and 1.16:
+ (three ALPHA test stages and pre-release version
+  were released as executables only)
+
+ - fixed integer printing routine in CPU_TYPE.ASH (it worked incorrect with
+   integers >= 100);
+ - P5INFO programs slightly enhanced to give a try for CPUs with no ID flag;
+ - Pascal version of CPUSpeed and intCPUSpeed routines rewritten for maximum
+   performance and precision;
+ - AMD 386 detection code removed - it was not worthy;
+ - IBM 386SLC/486SLC/486SLC2 detection code rewritten, 486BL3 (Blue Lightning)
+   detection code added;
+ - QEMM-386 detection code commented out everywhere and IBM's SLC chips
+   detection left to work only in real mode - QEMM appeared not to pass GPF
+   exception to DOS real mode interrupt handler which is not acceptable for
+   current detection method: RDMSR with invalid MSR index causes GPF and we
+   should be able to handle it. The code still present though - maybe someone
+   can make use of it anyway *smile*;
+ - SMM support detection added to assembler version (activated if 
+   __PRINT_STEP__ NOT defined);
+ - finally made it work on 8086 *relaxed smile*;
+ - added some IFs for TASM 4.x (it supports P5 instructions);
+ - finally made UMC U5 detection work in assembler version;
+ - finally got rid of incorrect 487sx detection on new 486s with CPUID and
+   internal FPU;
+ - fixed incorrect FPU detection on Ti486SXL (stated "Internal" while there's
+   no FPU on chip);
+ - numerous FPU types detection added (ULSI, C&T, etc.);
+ - RapidCAD is now history, so I decided not to include its detection in
+   TMi0SDGL though now I know how to do it;
+ - fixed FPU detection routine (labels got messed up);
+ - added NexGen Nx586 and its companion FPU Nx587(not yet available) detection;
+ - fixed Internal FPU detection, some obsolete code eliminated;
+ - fixed bug in print_CPU routine (assembler version) which caused i486 model
+   to be reported incorrectly;
+ - tried to fix OS/2 trap in FPU detection routine;
+ - IIT FPUs detection method changed;
+ - Pascal and C code slightly optimized;
+ - now if 486 CPU and 487 FPU is detected, this leads to conclusion that this
+   is 486DX or 487SX with internal FPU;
+ - added P5/P54 distinguishing;
+ - added new AMD Am486DX2, DX2+, DX4, DX4+ CPUs detection;
+ - documented Windows 95 crash problem on SMM support test;
+ - iP24T given its real name everywhere.
+
+ Differences between 28/06/95 and 06/07/95 versions (both go under 1.16 version
+ number, no changes made to the code):
+
+ - some additions in the license agreement;
+ - added Distribution section in README.1ST;
+ - added Cyrix M1 id obtained from Cyrix CPU identification register, though
+   it doesn't affect actual M1 detection method;
+ - adjusted P6 CPUFix value (still need testing, just based on the fact that
+   P6 is approximately 70-80% faster than P5 at the same clock speed);
+ - test486.pas slightly enhanced to give more information;
+ - internet contact address added.
+
+ Differences between versions 1.16 and 1.16a:
+
+ - added some information on SMM detection routine and i486 (see CPUTYPE.DOC
+   notes section).
+
+ Differences between versions 1.16a and 1.16b:
+
+ - added one more method of distinguishing i486sx from i487sx/i486dx/dx2/etc.
+   This time it should catch i486sx with third-party coprocessor (Cyrix, etc.)
+   installed;
+ - added references to CPUTYPE.DOC where you can obtain more information on
+   CPUs, FPUs, their detection methods, etc.
+
+ Differences between versions 1.16b and 1.16c:
+
+ - my PGP 2.6 public key added to the distribution archive;
+ - README.1ST is now signed using PGP 2.6 to ensure authenticity.
+
+ Differences between versions 1.16c and 1.16d:
+
+ - added Cyrix 486 step and revision determination;
+ - fixed unusual bug under Borland DPMI host 1.5 and Windows 95/QEMM which
+   caused 486sx/dx test code to zero EBX register. This bug was really strange.
+   Only thing I know is that it is not mine - someone in Exception 13 handler
+   chain (DPMI16BI is the most likely one) cleared the EBX register for some
+   reason. It appeared on my Cx486DX, so I lowered the plank for the test for
+   Intel 486s only.
+
+ Differences between versions 1.16d and 1.16e:
+
+ - fixed a bug in i486sx and i487sx/i486dx/dx2/etc. distinguishing - the code
+   produced inverted result. Now it works properly and I have tested it on
+   number of PCs.
+   
+ Differences between versions 1.16e and 1.16f:
+
+ - fixed messed up string array in CPU_TYPE.ASH - this bug lead to Am486
+   detection on P54. Actually, the CPU was detected correctly, but reported
+   incorrectly;
+ - fixed CPUFix array in both SPEED.ASH and CPUSPEED.ASM (the same problem as
+   above);
+ - all indeces brought into uniform shape :) in both assembler and hi-level
+   versions.
+
+ Differences between versions 1.16f and 1.17:
+
+ - fixed bug in P5INFO.ASM (rewritten getP5Vendor for automatic stack frame
+   generation, there was an obvious error);
+ - fixed IsCyrix routine in CXMODEL.ASM (it was original Cyrix's code to
+   detect their CPUs, changed to Sergei Frolov's version);
+ - some cosmetic operations done (version number changed and all stuff like
+   that :) Added some strings to the dox.
+
+                          << end of HISTORY.DOC >>

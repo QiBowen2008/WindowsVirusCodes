@@ -1,0 +1,126 @@
+# TMi0SDGL(tm) makefile  Version 1.04
+#
+# Copyright(c) 1995 by B-coolWare.  Written by Bobby Z.
+#
+# make targets:
+#
+# Asm     - assembler version of identifier
+# RPascal - real mode pascal version
+# PPascal - protected mode pascal version
+# C       - C version
+# P5Pas   - P5Info pascal version
+# P5C     - P5Info C version
+# test486 - test486 program
+# clean   - cleanup
+# all     - all of the above
+
+# ------------------- Compilers
+# Borland C++
+CC = bcc
+# Turbo C/C++
+# CC = tcc
+# Microsoft C/C++
+# CC = cl
+# Turbo Pascal
+TPC = tpc
+# Borland Pascal
+# TPC = bpc /cd
+# Linker
+TLIB = tlib
+# TLIB = lib
+
+# ------------------- Memory Model
+
+MODEL = l		# must be uppercase letter for Microsoft C
+ASMMODEL = __LARGE__	# must be __LARGE__ for Borland/Turbo Pascal
+
+# ------------------- Paths
+
+INCLUDE = X:..\INCLUDE
+LIB = X:..\LIB
+
+# ------------------- Compiler Options
+# Borland C/C++, Turbo C/C++
+CCOPTC = /c /m$(MODEL) /I$(INCLUDE) /Ox
+# ^^^^ add -RT- for Borland C++ 4.5 to inhibit RTTI information inclusion
+CCOPTL = /m$(MODEL) /I$(INCLUDE) /L$(LIB) /Ox
+CCOPTL2 =
+# Microsoft C/C++
+# Note that you should set LIB environment variable to point to your MSC\LIB
+# directory.
+# CCOPTC = /A$(MODEL) /Ox /c /FPi /I$(INCLUDE)
+# CCOPTL = /A$(MODEL) /Ox /FPi /I$(INCLUDE)
+# CCOPTL2 = /link /NOI /NOE
+
+# ------------------- Implicit rules
+
+.obj.com:
+ tlink /t/x $*
+.asm.obj:
+ tasm /t/m/d$(ASMMODEL) $*
+.c.obj:
+ $(CC) $(CCOPTC) $<
+
+
+# -------------------- Explicit rules
+
+all: Asm test486 RPascal PPascal C P5Pas P5C clean
+
+# Assembler rules
+
+Asm: cpu.com
+cpu.com: cpu.obj
+cpu.obj: cpu.asm speed.ash dosinout.ash cpu_type.ash unidef.inc lstring.ash
+ tasm /t/m/d__TINY__ $*
+
+# Pascal rules
+
+RPascal: cpu_rm.exe	# Borland Pascal real mode
+cpu_rm.exe: cpu_tp.obj speed_tp.obj smm.obj p5info.obj cxmodel.obj
+ $(TPC) /m cpu
+ del cpu_rm.exe
+ ren cpu.exe cpu_rm.exe
+
+PPascal: cpu_pm.exe	# Borland Pascal protected mode
+cpu_pm.exe: cpu_tp.obp speed_tp.obp smm.obj p5info.obj cxmodel.obj
+ bpc /cp /m cpu
+ del cpu_pm.exe
+ ren cpu.exe cpu_pm.exe
+
+cpu_tp.obj: cpu_hl.asm
+ tasm /t/m/d$(ASMMODEL) cpu_hl, cpu_tp
+speed_tp.obj: cpuspeed.asm
+ tasm /t/m/d$(ASMMODEL) cpuspeed, speed_tp
+cpu_tp.obp: cpu_hl.asm
+ tasm /t/m/d$(ASMMODEL)/d__DPMI__ cpu_hl, cpu_tp.obp
+speed_tp.obp: cpuspeed.asm
+ tasm /t/m/d$(ASMMODEL)/d__DPMI__ cpuspeed, speed_tp.obp
+
+P5Pas: p5info.exe	# Turbo Pascal
+p5info.exe: p5info.obj
+ $(TPC) /m $*
+p5info.obj: p5info.asm
+
+test486: test486.exe
+test486.exe: RPascal model486.obj
+ $(TPC) test486
+
+# C/C++ rules
+
+C: cpuc.exe
+cpuc.exe: cputype$(MODEL).lib
+ $(CC) $(CCOPTL) cpu.c cputype$(MODEL).lib $(CCOPTL2)
+ ren cpu.exe cpuc.exe
+
+P5C: p5c.exe
+p5c.exe: p5c.obj cputype$(MODEL).lib
+ $(CC) $(CCOPTL) p5c.obj cputype$(MODEL).lib $(CCOPTL2)
+p5c.obj: p5info.c
+ $(CC) $(CCOPTC) -op5c.obj p5info.c
+
+cputype$(MODEL).lib: cpu_hl.obj cpuspeed.obj smm.obj p5info.obj cputype.obj cxmodel.obj
+ $(TLIB) $* -+cpu_hl.obj -+cpuspeed.obj -+smm.obj -+p5info.obj -+cputype.obj -+cxmodel.obj
+
+clean:
+ del *.ob?
+
