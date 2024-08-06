@@ -1,0 +1,25 @@
+.TH RERESOLVE 1 "August 1999" Fastresolve
+.SH NAME
+reresolve \- retry unresolved IP addresses in a DB file
+.SH SYNOPSIS
+.B reresolve
+[\-d dbfile] [other dns-terror options]
+.SH DESCRIPTION
+.B reresolve
+reads a DB file produced by
+.B dns-terror
+and runs the unresolved IP addresses in it through
+.B dns-terror \-r
+(which updates the DB file with the new results).
+Usually, some addresses do resolve if retried, due to temporary network
+failures or slowness when the original queries were made.  It passes
+any options given to it to
+.BR dns-terror .
+The default DB file name is the same as for
+.BR dns-terror ,
+ip2host.db.
+.SH "SEE ALSO"
+dns-terror(1), db_intro(3)
+.SH AUTHORS
+David MacKenzie <djm@web.us.uu.net>.
+Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.

@@ -1,0 +1,90 @@
+#!@PERL@
+# Simple web report generation harness.
+#
+# Written by David MacKenzie <djm@web.us.uu.net>
+# Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.
+
+##############################################################################
+#   Copyright 1999 UUNET, an MCI WorldCom company.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+# 02111-1307, USA.
+##############################################################################
+
+use Getopt::Std;
+
+use vars qw($opt_c $opt_o);
+
+main();
+exit(0);
+
+sub usage
+{
+    die "Usage: $0 [-c analog.cfg] [-o report.html] logfile...\n";
+}
+
+sub main
+{
+    my($prefix, $exec_prefix, $cfg, $report, $logfile, $templog, $newlog,
+       $v, @logs);
+
+    $prefix="@prefix@";
+    $exec_prefix="@exec_prefix@";
+    $ENV{PATH}="@bindir@:$ENV{PATH}";
+
+    getopts("c:o:") || usage();
+    @ARGV || usage();
+
+    $cfg = $opt_c || "@datadir@/fastresolve/analog.cfg";
+    $report = $opt_o || "report.html";
+    $v = "-m 100";
+
+    @logs = ();
+    foreach $logfile (@ARGV) {
+	if (! -f $logfile) {
+	    die "$logfile: $!\n";
+	}
+	warn "Resolving IP addresses in $logfile\n";
+	if ($logfile =~ m/\.gz$/) {
+	    $newlog = $logfile;
+	    $templog = "$newlog.temp";
+	    system "gzcat $logfile | dns-terror $v -oz > $templog";
+	} else {
+	    $newlog = $logfile . ".gz";
+	    $templog = "$newlog.temp";
+	    system "dns-terror $v -oz < $logfile > $templog";
+	}
+	if (-s $templog) {
+	    if (rename($templog, $newlog)) {
+		push(@logs, $newlog);
+		unlink($logfile) if $logfile !~ m/\.gz$/;
+	    } else {
+		warn "cannot rename $templog to $newlog: $!\n";
+	    }
+	} else {
+	    warn "not renaming $templog to $newlog: $templog is empty\n";
+	    unlink($templog);
+	}
+    }
+
+    warn "Getting domain owners\n";
+    system "getdominfo -a -m10";
+
+    warn "Creating Analog config file\n";
+    system "convert-dom-db > subdomains.cfg";
+
+    warn "Producing report $report\n";
+    system "gzcat @logs | analog -G +g$cfg > $report";
+}

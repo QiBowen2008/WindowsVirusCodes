@@ -1,0 +1,150 @@
+TODO:
+
+Get someone to make spiffy graphics and a logo for the web page. :-)
+
+Do whatever else is needed to make it usable as an apache logging coprocess?
+
+Profiling
+=========
+
+From gprof, significant time is being spent in:
+5.7%		adns__timeouts()
+3.8%		find() (mostly less(), thus strcmp())
+2.3%		sendto()
+1.0%		read_ipaddr()
+1.0%		domptr(0
+1.0%		memchr() in fgetln()
+
+Cache efficiency
+================
+
+On an arbitrarily chosen day, a reports system reporting on 81
+different web servers got a 64% DB file cache hit rate.  That number
+is higher than might be expected.  The common use of web proxies like
+AOL's may be responsible for the high success rate, though that's just
+a guess.
+
+It would be helpful to do a histogram of the age of cache entries that
+were used, to help determine the optimum cache entry lifetime for
+expire-ip-db.  dns-terror would need more instrumentation (probably #ifdef'd)
+to track that.  Is it a normal distribution, or fairly flat with no dropoff?
+
+Parallelism
+===========
+
+dns-terror -oz and analog each fully utilize a single CPU; rcp does
+not use much CPU.  How to take advantage of N CPUs?
+
+The process of generating a single report is not easy to parallelize,
+without incurring enough coordination and system call overhead to
+possibly counteract the speed gain.  If multiple reports are being
+generated, there could be several processes reading from a work queue.
+
+This could be approached in two main ways.  One way would be to have
+each reader process go through the whole cycle of programs to produce
+a report: rcp, dns-terror, optionally getdominfo, analog.  dns-terror
+and getdominfo would use file locking (flock, man DB_File) on the DB files
+to prevent corruption from multiple simultaneous writers.  There could
+be more reader processes than CPUs, to try to get more CPU utilization
+when several rcp's happen to be occurring simultaneously, by
+increasing the chance that there will be another process that is
+running dns-terror or analog.  There would be some redundant fetching
+of external data if multiple dns-terror or getdominfo processes ran
+simultaneously.  Probably the increase in parallelism would more than
+offset that time waste.
+
+The other way would be to have each process do only one stage of
+report generation.  There might be a first-stage control process that
+generates the initial queue of log files to rcp, from a database.  One
+process loops rcp'ing log files.  When it finishes each one, it adds
+it to a queue that is read by another process that runs dns-terror on
+each log file.  When it finishes one, it adds that log file name to a
+queue that is read by a process that repeatedly runs analog.  With
+this approach, the queues could even be text files that are written
+with line buffering, since each queue will have only one reader, so
+read buffering won't be a problem.
+
+But this approach doesn't parallelize beyond 2-4 CPUs.  A refinement
+of this second approach is to have multiple processes at each stage,
+with DB file locking, and making sure that the queue items are only
+written and read at record boundaries.  There would be the same
+inefficiency as with the first approach regarding some redundant
+fetching of data by multiple dns-terror and getdominfo processes.
+
+Having multiple processes reading and/or writing log files
+simultaneously shouldn't be a problem, as the I/O bandwidth of
+an ultra-wide SCSI RAID can handle that.
+
+Another issue is how and when gzip is run.  A log file can be zipped
+before being fetched from the remote machine, or at the start, middle,
+or end of the report generation process, or the log file can be
+discarded without ever zipping it (though we wouldn't do that).
+Zipping it last, for archiving, minimizes the amount of CPU time spent
+zipping and unzipping, at the cost of more disk I/O.  If a log file is
+not zipped on the remote machine prior to the rcp, it could be
+transferred with rsync -z or scp -C to reduce transfer times.
+However, that is effectively gzipping the file on the remote machine,
+then unzipping it and rezipping it locally.  If rsync or scp had an
+option to gzip the file on the fly and keep it in gzipped form on the
+destination machine, that might be desirable.  It would be nice
+because the time when the log files are ready to be fetched would be
+the same, without having to account for gzipping time that depends on
+the log file sizes.
+
+On multiprocessor machines, running gzip in a pipe as a separate
+process might be a win over using zlib, unless the system call
+overhead outweighs the gain of multiprocessing.  If we are using the
+pipelining approaches outlined above, we might want to use zlib
+anyway.
+
+Possible ways to parallelize dns-terror:
+
+Parallelize and partition the work with fork() to increase CPU
+utilization from 25-50% to closer to 100%, so we can be doing
+processing while waiting for I/O (e.g., a cache lookup).  Or, more
+simply, we could start several copies at once, processing different
+log files.  But they would have to either use different DB files (and
+hence duplicate effort) or else use DB syncing and locking.
+
+Here's a parallel design to consider:
+
+For each N-line chunk of logs (could be the whole file):
+parent stores an in-core map (key=ipaddr,value=exists) to make a list
+of the distinct IP addresses it has read.  When it's done N (or all)
+lines, it hands off 1/C of them to each child that it's forked, via
+perhaps shared memory or Unix domain sockets, and signals.  The
+children resolve them by looking up whether they're resolved in the
+on-disk DB file.  They write to either that file, by locking it, or
+their own DB file, which are all combined by the parent at the end.
+Or they could just append the results to a stack or socket in memory,
+and the parent writes them out to the DB file.  But remember, most of
+them we've already seen, and never go to DNS for.  So those lookups are
+probably what we need to parallelize the most.
+
+Here's another parallelizing idea:
+
+Split the work into N buckets, each handled by one process, according
+to the last octet of the IP address.  Either the modulus or the
+remainder should work, I think.  For -o, getting the lines output in
+order would require some sort of coordination--shared memory or
+semaphores, perhaps.
+
+Are TCP DNS connections faster than UDP?
+========================================
+
+It's hard to know:
+
+Try adns_qf_usevc (TCP) in the query flags.  Unfortunately, after a
+few dozen queries, I get this:
+adns warning: TCP connection lost: read: Connection reset by peer (NS=127.0.0.1)
+And then nothing happens....
+
+Sample IIS 4 log
+================
+
+#Software: Microsoft Internet Information Server 4.0
+#Version: 1.0
+#Date: 1999-08-16 00:02:07
+#Fields: date time c-ip cs-username s-sitename s-computername s-ip cs-method cs-uri-stem cs-uri-query sc-status sc-win32-status sc-bytes cs-bytes time-taken s-port cs-version cs(User-Agent) cs(Cookie) cs(Referer)
+1999-08-16 00:02:07 208.206.40.191 - W3SVC3 FLEXNET17 208.192.104.93 HEAD /default.htm - 200 0 280 19 0 80 HTTP/1.0 - - -
+1999-08-16 00:07:06 208.206.40.191 - W3SVC3 FLEXNET17 208.192.104.93 HEAD /default.htm - 200 0 280 19 0 80 HTTP/1.0 - - -

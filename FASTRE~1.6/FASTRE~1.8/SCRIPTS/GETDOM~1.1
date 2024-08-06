@@ -1,0 +1,58 @@
+.TH GETDOMINFO 1 "August 1999" Fastresolve
+.SH NAME
+getdominfo \- map host names to owning organizations
+.SH SYNOPSIS
+.B getdominfo
+[\-adv] [\-c conn] [\-e exclude] [\-i dbfile] [\-o dbfile] [\-m mark-size] [logfile...]
+.SH DESCRIPTION
+.B getdominfo
+reads a list of host names, from either log files or a DB
+file produced by
+.BR dns-terror ,
+and queries a whois database for the organizations
+that own their domains.  It writes the results to a second DB file.
+.PP
+If you make more than some small number of whois queries in a given
+period of time (perhaps a minute) from a given IP address, the
+InterNIC congestion control algorithm refuses connections from that
+address for a minute or two.  Since they have a monopoly on the
+database,
+.B getdominfo
+supports configuring a bunch of virtual IP addresses on the local
+machine; it cycles through them as the source address for the queries.
+It's easier than writing a gratuitous distributed program to make
+the queries.
+.SH OPTIONS
+.IP \-a
+Query for all entries in the input DB file.
+If not given, reads logs from stdin or files on command line.
+.IP "\-c conn"
+Make conn simultaneous connections to the InterNIC.  Default is 3.
+.IP \-d
+Print debugging info.
+.IP "\-e exclude"
+A (Perl) regular expression to match IP addresses on the local machine
+to not use, e.g., unrouted backnets or down interfaces.
+.IP "\-i dbfile"
+The input DB file, default ip2host.db.
+.IP "\-o dbfile"
+The output DB file, default dominfo.db.
+.IP "\-m marksize"
+Print a notice every marksize entries.
+.IP \-v
+Verbose: print progress messages.
+.SH FILES
+.IP ip2host.db
+Default input DB file for mapping IP addresses to host names.
+.IP dominfo.db
+Default output DB file for saving results.
+.SH "SEE ALSO"
+convert-dom-db(1), dns-terror(1), make-report(1), whois(1), db_intro(3)
+.SH BUGS
+The InterNIC keeps changing the format of the query responses,
+requiring periodic tweaks to the parsing code to extract the
+organizations that own the domains.
+.SH AUTHORS
+Josh Osborne <stripes@eng.us.uu.net>
+and David MacKenzie <djm@web.us.uu.net>.
+Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.

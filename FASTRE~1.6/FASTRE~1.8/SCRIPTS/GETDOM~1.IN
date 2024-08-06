@@ -1,0 +1,443 @@
+#!@PERL@
+# Read WWW log files and get the InterNIC information for the
+# IP addresses in them, using the DB file produced by dns-terror
+# to to map the IP addresses into domains first.  Saves the results
+# to a second DB file.
+#
+# Options:
+# -a		Query for all entries in the input DB file.
+#		If not given, reads logs from stdin or files on command line.
+# -c conn	Make conn simultaneous connections to the InterNIC, default 5.
+# -d		Print debugging info.
+# -e exclude	Regex to match IP addresses on the local machine to not use,
+#		e.g., unrouted backnets or down interfaces.
+# -i dbfile	Name the input DB file, default ip2host.db.
+# -o dbfile	Name the output DB file, default dominfo.db.
+# -m marksize	Print a notice every marksize entries.
+# -v		Verbose: print progress messages.
+#
+# If you make more than some small number of whois queries in
+# a given period of time (perhaps a minute) from a given IP address, 
+# the InterNIC congestion control algorithm refuses connections
+# from that address for a minute or two.
+# Since they have a tight-fisted monopoly on the database, we
+# work around their uncooperativeness by configuring a bunch of
+# virtual IP addresses on the local machine, and cycling through
+# them as the source address for the queries.  It's easier than writing
+# a distributed program to make the queries.
+#
+# Written by Josh Osborne <stripes@eng.us.uu.net>
+# and David MacKenzie <djm@web.us.uu.net>
+# Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.
+
+##############################################################################
+#   Copyright 1999 UUNET, an MCI WorldCom company.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+# 02111-1307, USA.
+##############################################################################
+
+BEGIN { $prefix="@prefix@"; }
+use lib "@datadir@/fastresolve";
+use Getopt::Std;
+use DB_File; 
+use Fcntl;
+use IO::Socket;
+use IO::Select;
+use AddrCycle;
+
+use strict 'vars';
+use vars qw($opt_a $opt_c $opt_d $opt_e $opt_i $opt_o $opt_m $opt_v
+	    $WhoisHost $WhoisPort $ReadTimeout $ErrorTimeout
+	    @QueryDomain %QueryDomain %IP2Domain %Domain2Info
+	    $NicBusy %Answers %Sock2Domain);
+
+# Constants.
+$WhoisHost = "whois.networksolutions.com";
+$WhoisPort = "whois";
+$ReadTimeout = 15;
+$ErrorTimeout = 0.01;
+
+main();
+exit(0);
+
+sub main
+{
+    my($domfile, $infofile, $maxconn);
+
+    getopts('ac:de:i:o:m:v')
+	or die "Usage: $0 [-adv] [-c conn] [-e exclude] [-i dbfile] [-o dbfile] [-m mark-size] [logfile...]\n";
+
+    $SIG{PIPE} = 'IGNORE';
+    select STDOUT;
+    $| = 1;			# Instant gratification if output is logged.
+
+    $maxconn = $opt_c || 5;
+
+    $domfile = $opt_i || "ip2host.db";
+    $infofile = $opt_o || "dominfo.db";
+    tie_hashes($domfile, $infofile);
+
+    if ($opt_a) {
+	read_ipdb($domfile);
+    } else {
+	gzip_kludge();
+	read_logs();
+    }
+    untie %IP2Domain;
+    @QueryDomain = keys(%QueryDomain);
+    untie %QueryDomain;
+
+    query_nic($maxconn);
+}
+
+# $domfile is the input DB file.
+# $infofile is the output DB file.
+sub tie_hashes
+{
+    my($domfile, $infofile) = @_;
+
+    tie(%IP2Domain, "DB_File", $domfile, O_RDONLY, 0640, $DB_BTREE)
+	|| die "Can't tie to $domfile: $!\n";
+
+    tie(%Domain2Info, "DB_File", $infofile, O_RDWR|O_CREAT, 0640, $DB_BTREE)
+	|| die "Can't tie to $infofile: $!\n";
+
+    tie(%QueryDomain, "DB_File", undef, O_RDWR|O_CREAT, 0640, $DB_BTREE)
+	|| die "Can't tie %QueryDomain to memory!\n";
+}
+
+# Add $domain to %QueryDomain
+# if it is suitable and we don't already have info about it.
+sub add_domain
+{
+    my($domain) = @_;
+
+    return if $domain =~ m/^[\d.]+$/;
+
+    return unless queryable_subdomains($domain);
+
+    # Remove the hostname, leaving the domain.
+    $domain = remove_element($domain);
+
+    return if defined $Domain2Info{$domain}; # Already know it.
+
+    $QueryDomain{$domain} = 1;
+}
+
+# Add to %QueryDomain all entries in the input DB file.
+sub read_ipdb
+{
+    my($domfile) = @_;
+    my($ipaddr, $domain, $entry);
+
+    warn "Reading $domfile\n";
+    $entry = 1;
+    while (($ipaddr, $domain) = each %IP2Domain) {
+	if ($opt_v) {
+	    warn "On entry $entry of $domfile\n"
+		unless ($entry & 0xfff);
+	    $entry++;
+	}
+
+	$domain = (unpack("IA*", $domain))[1];
+	add_domain($domain) if $domain;
+    }
+    warn "Done looking at the DB file.\n";
+}
+
+# Magic for open(), via <>.
+sub gzip_kludge
+{
+    foreach (@ARGV) {
+	s/(.*\.(Z|z|gz))$/gzcat $1|/;
+    }
+}
+
+# Add to %QueryDomain the entries in the input DB file
+# that are found in the log files on stdin.
+sub read_logs
+{
+    my($ipaddr, $domain);
+    my($oldARGV) = '';
+
+    while (<>) {
+	if ($opt_v) {
+	    warn "On line $. of $ARGV\n"
+		unless ($. & 0xfff);
+	}
+	if ($ARGV ne $oldARGV) {
+	    warn "Reading $ARGV\n";
+	    $oldARGV = $ARGV;
+	}
+	
+	m/^(\S+)/;
+	$ipaddr = $1;
+	# or:
+	# $ipaddr = (split(/\s+/, $_, 2))[0];
+
+	# Skip dotted quads that we can't resolve,
+	# but pass through non-dotted-quads
+	# (assume they're already resolved host names).
+	if (exists($IP2Domain{$ipaddr})) {
+	    $domain = (unpack("IA*", $IP2Domain{$ipaddr}))[1];
+	    add_domain($domain) if $domain;
+	} elsif ($ipaddr !~ m/^[\d.]+$/) {
+	    add_domain($ipaddr);
+	}
+    }
+    warn "Done looking at the log files.\n";
+}
+
+# False if not a domain that's handled by the InterNIC.
+# True if $domain has at least two elements of domain below the host name.
+# E.g., true for foo.bar.edu and foo.bar.baz.edu, but false for foo.edu.
+sub queryable_subdomains
+{
+    my($domain) = @_;
+
+    # Not done for int|mil|gov, because the InterNIC doesn't handle those.
+    return $domain =~ m/\.[^.]+\.(edu|com|org|net)$/i;
+}
+
+# Strip off the first element of $domain.
+# E.g., for foo.bar.baz.edu, return bar.baz.edu.
+sub remove_element
+{
+    my($domain) = @_;
+
+    $domain =~ s/^[^.]+\.//;
+    return $domain;
+}
+
+# Return the number of elements in the domain.
+# E.g., for foo.bar.edu return 3.
+sub elements
+{
+    my($domain) = @_;
+
+    return ($domain =~ tr/././) + 1;
+}
+
+# Make whois queries for the domains in @QueryDomain,
+# up to $maxconn simultaneously.
+# Put the results in %Domain2Info.
+sub query_nic
+{
+    my($maxconn) = @_;
+    my($ac) = new AddrCycle($opt_e);
+    my($sel) = new IO::Select();
+    # If we have to, we can resort to an exponential or linear backoff.
+    my($wait) = 45;
+    my($domain, $avail);
+
+    warn "Will ask about: @QueryDomain\n" if $opt_d;
+
+    while (@QueryDomain > 0 or $sel->count() > 0) {
+	# min($maxconn, @QueryDomain)
+	$avail = $maxconn < @QueryDomain ? $maxconn : @QueryDomain;
+	# Keep the query pipeline full.
+	# read_answers() didn't necessarily drain all of the pending queries.
+	$avail -= $sel->count();
+	warn "Making $avail more queries\n" if $opt_d;
+	while ($avail-- > 0 and @QueryDomain > 0) {
+	    $domain = shift @QueryDomain;
+	    if (!exists($Answers{$domain}) and !exists($Domain2Info{$domain})) {
+		$sel->add(request($ac->next_addr(), $domain));
+	    } else {
+		warn "$domain was already seen\n" if $opt_v;
+	    }
+	}
+
+	$NicBusy = 0;
+	if ($sel->count() > 0) {
+	    read_answers($sel);
+	}
+	
+	if ($NicBusy) {
+	    warn "The InterNIC appears to be blowing us off, waiting $wait seconds\n";
+	    warn "before trying again (" , scalar(@QueryDomain), " left)...\n";
+
+	    sleep $wait;
+	}
+    }
+}
+
+{
+    my($lastmark) = -1;
+
+    # Submit a whois request for $domain, using $laddr as the source address
+    # (in unpacked, ASCII form).
+    # Return the socket handle for the connection.
+    sub request
+    {
+	my($laddr, $domain) = @_;
+	my($sock);
+	# If we have to, we can resort to an exponential or linear backoff.
+	my($wait) = 45;
+
+	while (!($sock = IO::Socket::INET->new(PeerAddr => $WhoisHost,
+					       PeerPort => $WhoisPort,
+					       LocalAddr => $laddr,
+					       Proto    => 'tcp'))) {
+	    warn "Can't make socket: $!\n";
+	    sleep $wait;
+	}
+	$sock->autoflush(1);
+	$sock->sockopt(SO_KEEPALIVE, 1);
+
+	$sock->syswrite("$domain\r\n", length($domain) + 2);
+
+	$Sock2Domain{$sock} = $domain;
+	$Answers{$domain} = '';
+
+	if ($opt_v) {
+	    warn "asking for $domain, ", scalar(@QueryDomain), " remaining\n";
+	} elsif ($opt_m
+		 and scalar(@QueryDomain) % $opt_m == 0
+		 and scalar(@QueryDomain) != $lastmark) {
+	    $lastmark = scalar(@QueryDomain);
+	    warn "$lastmark remaining\n";
+	}
+
+	return $sock;
+    }
+}
+
+# Process any pending input from the whois server connections.
+sub read_answers
+{
+    my($sel) = @_;
+    my($sock, $domain, $answer, $nread);
+
+    foreach $sock ($sel->has_error($ErrorTimeout)) {
+	$domain = $Sock2Domain{$sock};
+	if ($sock->error()) {
+	    warn "socket error\n";
+	    read_error($sel, $sock, $domain);
+	} else {
+	    # Just EOF.
+	    process_answer($sel, $sock, $domain);
+	}
+    }
+
+    return if $sel->count() < 1;
+
+    foreach $sock ($sel->can_read($ReadTimeout)) {
+	$domain = $Sock2Domain{$sock};
+
+	# Read "as much as possible" (for a whois response).
+	eval {
+	    local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+	    alarm $ReadTimeout;
+	    $nread = $sock->sysread($Answers{$domain}, 1024 * 50,
+				    length($Answers{$domain}));
+	    alarm 0;
+	};
+
+	if ($@ or $nread < 0) {
+	    if ($@ eq "alarm\n") {
+		warn "read timed out: $!\n";
+	    } elsif ($@) {
+		warn "read error: $@\n";
+	    } else {
+		warn "stream error: $!\n";
+	    }
+	    read_error($sel, $sock, $domain);
+	}
+
+	# Try to detect the end of the answer in this iteration,
+	# instead of holding onto the socket for another round.
+	elsif ($nread == 0
+	    or $Answers{$domain} =~ m/Domain servers in listed order/
+	    or $Answers{$domain} =~ m/To single out one record/
+	    or $Answers{$domain} =~ m/No match/i) {
+	    process_answer($sel, $sock, $domain);
+	}
+    }
+}
+
+# There was an error during the query for
+# $domain from socket handle $sock.
+# Remove temporary hash entries and remove the query from select list $sel,
+# and queue up $domain for another try.
+sub read_error
+{
+    my($sel, $sock, $domain) = @_;
+
+    push(@QueryDomain, $domain); # Don't forget this domain.
+    $sel->remove($sock);
+    $sock->close();
+    delete $Sock2Domain{$sock};
+    delete $Answers{$domain};
+}
+
+# Try to find an answer in %Answer for
+# $domain from socket handle $sock.
+# Remove temporary hash entries and remove the query from select list $sel.
+sub process_answer
+{
+    my($sel, $sock, $domain) = @_;
+    my($answer, $owner);
+
+    $sel->remove($sock);
+    $sock->close();
+    delete $Sock2Domain{$sock};
+
+    $answer = $Answers{$domain};
+    delete $Answers{$domain};
+    warn $domain, " answer is:\n", $answer, "\n" if $opt_d;
+
+    if (!$answer) {
+	warn "no answer for $domain, retrying\n";
+	push(@QueryDomain, $domain); # Don't forget this domain.
+    } elsif ($answer =~ m/^No match/mi) {
+	$Domain2Info{$domain} = ""; # Negative caching.
+
+	if (elements($domain) > 2) {
+	    $domain = remove_element($domain);
+	    if (!exists($Answers{$domain}) and !exists($Domain2Info{$domain})) {
+		warn "asking for parent domain $domain\n" if $opt_v;
+		# Do the parent domain next, to make a visual connection.
+		unshift(@QueryDomain, $domain);
+	    }
+	} elsif ($opt_v) {
+	    warn "no info for $domain\n";
+	}
+    } elsif ($answer =~ m/Your query limit has been exceeded/) {
+	warn "InterNIC refused query\n";
+	push(@QueryDomain, $domain); # Don't forget this domain.
+	$NicBusy = 1;
+    } else {
+	$owner = undef;
+	# Here we strip out everything but the owner, which is all we are
+	# interested in.  It makes the DB file smaller, and keeps
+	# Network Solutions from worrying that we're copying their database.
+	$answer =~ s/^.*?this policy\.\n//s; # Skip the legal notice.
+	if (($answer =~ s/^(.*?)\s*\(.*\)/$owner ||= &findowner($1)/meg) && $owner) {
+	    $Domain2Info{$domain} = $owner;
+	}
+    }
+}
+
+# Do some fixing up on a domain owner from whois.
+sub findowner
+{
+    my($data) = @_;
+
+    return undef if $data eq "[No name]";
+    $data =~ s/\"/\'/g;
+    return $data;
+}

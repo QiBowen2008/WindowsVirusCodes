@@ -1,0 +1,71 @@
+#!@PERL@
+# Retry resolving negative cache entries in the IP to host name DB file.
+#
+# Written by David MacKenzie <djm@web.us.uu.net>
+# Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.
+
+##############################################################################
+#   Copyright 1999 UUNET, an MCI WorldCom company.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+# 02111-1307, USA.
+##############################################################################
+
+use DB_File;
+use Fcntl;
+use Getopt::Std;
+
+main();
+exit(0);
+
+sub main
+{
+    my(@opts, $dbfile, $tempfile);
+
+    @opts = @ARGV;
+    getopts("d:");
+
+    $dbfile = $opt_d || "ip2host.db";
+    ($tempfile = $dbfile) =~ s/\.db$//;
+    $tempfile .= ".temp$$";
+
+    $SIG{HUP} = $SIG{INT} = $SIG{TERM} = sub { unlink $tempfile; exit 1; };
+    get_unresolved($dbfile, $tempfile);
+    system "dns-terror @opts -r < $tempfile";
+    unlink $tempfile;
+}
+
+# Put the unresolved addresses in $dbfile into $outfile, one per line.
+sub get_unresolved
+{
+    my($dbfile, $outfile) = @_;
+    my(%input, $timestamp, $key, $data);
+
+    tie(%input, "DB_File", $dbfile, O_RDONLY, 0640, $DB_BTREE)
+	|| die "$0: Can't read $dbfile: $!\n";
+    
+    open(OUT, ">$outfile") || die "$0: Can't create $outfile: $!\n";
+
+    while (($key, $data) = each(%input)) {
+	($timestamp, $data) = unpack("IA*", $data);
+
+	if (!$data) {
+	    print OUT "$key\n";
+	}
+    }
+    
+    untie(%input);
+    close(OUT);
+}

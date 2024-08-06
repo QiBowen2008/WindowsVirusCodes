@@ -1,0 +1,40 @@
+.TH MAKE-REPORT 1 "February 2000" Fastresolve
+.SH NAME
+make-report \- process a web log and produce a report
+.SH SYNOPSIS
+.B make-report
+[\-c analog.cfg] [\-o report.html] logfile...
+.SH DESCRIPTION
+.B make-report
+resolves the IP addresses in the given log files and looks up the
+owners of the resulting hosts' domains.  Then it runs Analog to create
+a report, called report.html by default.
+The log files are expected to be in the Common Log Format,
+with optional referer and user-agent fields allowed at the ends of the
+lines.
+.PP
+When
+.B make-report
+finishes running, the given log files have been rewritten in gzip
+format (with the extension ".gz") with the IP addresses resolved (as
+many as possible).  Any of the input files may be gzipped already
+(with the extension ".gz"), but they need not be.
+.SH OPTIONS
+.IP "\-c analog.cfg"
+Use an alternate Analog configuration file.
+.IP "\-o report.html"
+Alternate output file.
+.SH FILES
+.IP "DATADIR/fastresolve/analog.cfg"
+Default Analog configuration file.
+.IP report.html
+Default output file.
+.IP ip2host.db
+DB file mapping IP addresses to host names.
+.IP dominfo.db
+DB file mapping host names to domain owners.
+.SH "SEE ALSO"
+convert-dom-db(1), dns-terror(1), getdominfo(1)
+.SH AUTHORS
+David MacKenzie <djm@web.us.uu.net>.
+Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.

@@ -1,0 +1,58 @@
+Changes in release 2.8:
+
+* Fixed a dns-terror memory access error on lines with nothing after
+  the IP address.
+
+Changes in release 2.7:
+
+* dns-terror can use the Berkeley DB 3.x C++ interface as an alternative to 2.x.
+* dns-terror ignores NUL bytes in an IP address field, instead of crashing,
+  and passes through NUL bytes elsewhere instead of truncating the log entry.
+* getdominfo retries instead of exiting if it can't connect a whois socket.
+
+Changes in release 2.6:
+
+* Adjust to changes in whois server responses.
+* adns patch updated for 0.8.
+
+Changes in release 2.5:
+
+* make-report produces gzipped log files with IP addresses resolved,
+  as well as the Analog report.
+* convert-dom-db works around an Analog 4.0 bug that rejects some
+  valid SUBDOMAIN commands.
+* adns patch updated for 0.7.
+* A hopefully more reliable workaround for the "adns_wait hangs" problem.
+* Now available in RPM format (both source and binary).
+
+Changes in release 2.4:
+
+* dns-terror prints the number of DB file cache hits.
+* Added dns-terror -z option to gzip the output.
+* Added a workaround in dns-terror to adns hanging on the last query.
+* expire-ip-db creates its temp file in the same directory as the original.
+* Added expire-ip-db -m option for a more concise progress report.
+
+Changes in release 2.3:
+
+* Added reresolve program.
+* dns-terror error handling and progress messages were improved.
+* dns-terror builds cleanly on Solaris.
+* getdominfo uses a simpler, more robust correct approach to parallelism.
+* getdominfo adjusted for the latest whois changes.
+* expire-ip-db avoids DB file corruption.
+* adns patch updated for 0.6.
+
+Changes in release 2.2:
+
+* Added dns-terror -f option to skip fields before IP address, to
+  support IIS (W3C) log files.
+* dns-terror added stats to show how many of the queries were successful.
+* getdominfo isn't fooled by the new whois legal notice.
+* rebuild-ip-db handles the values correctly.
+
+Changes in release 2.1:
+
+* Added dns-terror -r option to only read positive caches from DB file.
+* Simplified Analog date handling code in convert-ip-db.
+* Kludged around a problem generating the make-report man page.

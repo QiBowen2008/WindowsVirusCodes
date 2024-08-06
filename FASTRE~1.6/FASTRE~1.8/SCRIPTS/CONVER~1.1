@@ -1,0 +1,28 @@
+.TH CONVERT-DOM-DB 1 "August 1999" Fastresolve
+.SH NAME
+convert-dom-db \- prepare domain to owner mappings for Analog
+.SH SYNOPSIS
+.B convert-dom-db
+[dominfo.db]
+.SH DESCRIPTION
+.B convert-dom-db
+reads a DB file produced by
+.BR getdominfo .
+It converts the domain to
+owner mappings from that file into Analog config directives.  It
+writes to the standard output, which should be saved in a file
+(suggested name: subdomains.cfg) which is sourced in Analog config
+files with:
+.PP
+CONFIGFILE subdomains.cfg
+.SH FILES
+.IP dominfo.db
+Default input DB file.
+.IP subdomains.cfg
+Suggested output file name.
+.SH "SEE ALSO"
+convert-ip-db(1), getdominfo(1), make-report(1), whois(1), db_intro(3)
+.SH AUTHORS
+Chris Ross <cross@eng.us.uu.net>
+and David MacKenzie <djm@web.us.uu.net>.
+Please comments and send bug reports to fastresolve-bugs@web.us.uu.net.

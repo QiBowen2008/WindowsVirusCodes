@@ -1,0 +1,39 @@
+.TH CONVERT-IP-DB 1 "August 1999" Fastresolve
+.SH NAME
+convert-ip-db \- prepare IP address to hostname mappings for Analog
+.SH SYNOPSIS
+.B convert-ip-db
+[ip2host.db]
+.SH DESCRIPTION
+.B convert-ip-db
+reads a DB file produced by
+.BR dns-terror .
+It converts the IP address to
+hostname mappings from that file into Analog config directives.  It
+writes to the standard output, which should be saved in a file
+(suggested name: dns.cache) which is sourced in Analog config
+files with:
+.PP
+.nf
+DNS READ
+DNSFILE dns.cache
+# 1008 is (35+7)*24, one week past the expire-ip-db default.
+DNSGOODHOURS 1008
+DNSBADHOURS 1008
+.fi
+.PP
+This handling of IP address resolution is similar in speed to using
+.B "dns-terror \-oz"
+to rewrite the log files in gzip form with IP addresses resolved,
+so perhaps it should be considered obsolete.
+.SH FILES
+.IP ip2host.db
+Default input DB file.
+.IP dns.cache
+Suggested output file name.
+.SH "SEE ALSO"
+convert-dom-db(1), dns-terror(1), expire-ip-db(1), make-report(1), db_intro(3)
+.SH AUTHORS
+Chris Ross <cross@eng.us.uu.net>
+and David MacKenzie <djm@web.us.uu.net>.
+Please comments and send bug reports to fastresolve-bugs@web.us.uu.net.

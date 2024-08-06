@@ -1,0 +1,170 @@
+.TH DNS-TERROR 1 "February 2000" Fastresolve
+.SH NAME
+dns-terror \- fast log file IP address resolver
+.SH SYNOPSIS
+.B dns-terror
+[\-v...] [\-orsz] [\-d db\-file] [\-c adns\-conf\-str] [\-m mark\-size] [\-p parallel\-queries] [\-f skip\-fields]
+.SH DESCRIPTION
+.B dns-terror
+reads log files, resolves the IP addresses that are
+resolvable, and optionally writes the results back out.
+Optionally it reads and saves the results in a DB file,
+to cache results between runs.
+.PP
+It reads IP addresses to resolve from the standard input, one per
+line.  Other data on a line before or after the IP address is ignored
+(although it may be passed through with the \-o option).
+.PP
+Before running
+.BR dns-terror ,
+it is best to run
+.BR unlimit ,
+because this program can use a lot of memory and create large files
+(depending on the size of the input files).
+.PP
+.B dns-terror
+uses the
+.B adns
+library (a parallel, asynchronous resolver) and caches
+the results in a tree structure in memory for speed.
+.SH OPTIONS
+.IP "\-p parallel\-queries"
+Set the size of the query pipeline.  Defaults to 1000 outstanding DNS
+queries.  When this number of queries are outstanding, the program
+waits for one of them to complete before it reads another input line.
+Experiment with different values to find the optimal one for your
+environment.  The optimal value depends at least on the response times
+of the DNS servers you are using and the speed of your CPU.  A good
+approach is to run repeated tests with \-d '' (no DB file cache) on
+the same log file, increasing the value of \-p each time until you
+find a point where higher values no longer result in significant time
+savings or increased CPU utilization.
+.IP \-o
+Copy the input lines to the standard output with IP addresses resolved.
+In this mode, the \-p option is multiplied by 20 to determine the
+maximum number of log lines that may be buffered in memory before
+forcing the program to wait for the first buffered line's outstanding
+DNS query to complete.  The default is 1000 times 20, or 20,000 lines.
+.IP \-z
+Write the output in gzipped form.  This only has an effect when the
+\-o option is given.  If you would have gzipped the output file
+immediately after resolving it, using this option instead is faster.
+Automatic gunzipping of the input to
+.B dns-terror
+is not currently supported.
+.IP "\-f skip\-fields"
+Skip skip\-fields blank-separated fields at the start of each line before
+expecting an IP address.  Default 0.  Useful for processing W3C format
+log files, such as IIS 4 produces.
+.IP \-v
+Increases output verbosity each time it is given, up to 3 (currently).
+The more, the messier.
+.IP "\-d db\-file"
+Save results to DB file db\-file.  Defaults to ip2host.db.  If given
+as the empty string (\-d ''), no DB file is used, and the results are
+lost when the program exits.
+.IP "\-m mark\-size"
+Print a notice every mark\-size input lines.  During the drain time
+at the end, after all the input lines have been read, print a notice
+after every 1/10 of the remaining DNS queries that are outstanding
+have been answered or timed out.
+.IP \-s
+Sync the cached results to the DB file on disk at each mark.
+.IP \-r
+Read in only positive cached results from the DB file, to make another
+pass at resolving the negative ones.
+.IP "\-c adns\-conf\-str"
+.B adns
+configuration string to use instead of /etc/resolv.conf
+and the various optional environment variables.
+One or more lines in a format like resolv.conf,
+with directives:
+.sp
+nameserver domain search
+.sp
+plus some additional directives:
+.sp
+sortlist options clearnameservers include
+.sp
+One approach is to make an alternate conf file
+and use \-c "include adns.conf".  Also,
+.B adns
+as of v0.6 reads /etc/resolv-adns.conf (if it exists) after
+/etc/resolv.conf.
+.PP
+If an unofficial patch (supplied with this package) is applied to
+.BR adns ,
+the following
+.B adns
+options are available (separate them with blank space if giving more
+than one):
+.sp
+.IP udpmaxretries:N
+Maximum number of times to retry a (UDP) DNS query before giving up.
+Default 15.
+.IP udpretryms:N
+Number of milliseconds between retries.  Default 2000 (2 seconds).
+Thus, the default timeout for a query is 15 times 2000 milliseconds =
+30000 milliseconds, or 30 seconds.  That is a fairly long time to wait
+for a DNS query to complete or timeout.  Faster performance will
+result from reducing udpmaxretries to produce a timeout more in the
+10-15 second range; however, some responses will be missed that way,
+so the percentage of IP addresses successfully resolved will be
+somewhat lower.
+.PP
+On a single processor machine,
+it is generally faster to use remote nameservers rather than a local
+caching nameserver (127.0.0.1).  A local caching nameserver will have
+cached a few addresses that are needed, but not most of them.  For
+most addresses, it will have to go out to the remote ones anyway, and
+so it's just an unnecessary intermediary (using the same CPU)
+processing the queries.  Since
+.B dns-terror
+does its own caching,
+it's best to ignore a nameserver on the loopback interface and
+specify a list of nameservers using \-c.  On a multiprocessor
+machine, there may be an advantage to using a local nameserver.
+.PP
+.B dns-terror
+does negative caching in the DB file; unresolvable IP addresses have
+an empty value in the file.  Each DB file entry contains a timestamp
+of when it was written, preceding the value (hostname).  It is stored
+in host byte order, since processing large files over a network file
+system is dumb.  Old entries should be removed periodically using
+.BR expire-ip-db .
+.PP
+.B dns-terror
+ignores the time-to-live on nameserver records.  The TTL could be
+stored in the DB file, but it is questionable whether that would
+provide a significant gain in accuracy, and it could negate much of
+the speed benefit of the DB file.
+.SH FILES
+.IP ip2host.db
+Default DB file for caching results.
+.IP /etc/resolv.conf
+Default resolver configuration.
+.SH SIGNALS
+.IP SIGHUP
+closes and reopens the DB file (useful if it was rolled).
+.IP SIGTERM
+closes the DB file without saving, and exits.
+.SH "SEE ALSO"
+convert-ip-db(1), dig(1), expire-ip-db(1), make-report(1), db_intro(3), resolver(5)
+.SH BUGS
+There is a tradeoff between completeness and running time.  It would
+be prudent to compare the output of this program with the output of a
+simpler resolver until you are confident that your configuration of it
+is working well.  You might use
+.B dig
+to spot-check some addresses that are not resolved, and/or use the \-v
+option to
+.B dns-terror
+to check on why (name server failure, no response, etc.).
+.PP
+All cached results from the DB file are held in memory for speed,
+so the program's memory footprint can become large.
+.SH AUTHORS
+David MacKenzie <djm@web.us.uu.net>.
+Thanks to Josh Osborne <stripes@eng.us.uu.net> for ideas and an
+earlier implementation.
+Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.

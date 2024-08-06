@@ -1,0 +1,502 @@
+Various timing comparisons resolving a typical ~300,000 line Apache
+log file.  The results given below were typical, though there was a
+standard deviation of about 10% between repeated runs.
+
+logresolve and logresolve.pl are from Apache 1.3.6.
+DNSlookups and dns-terror1.x are unreleased software written at UUNET.
+
+Summary of wall clock run times:
+
+program				seconds	ratios
+
+resolving with local cache, not rewriting:
+
+dns-terror-map-nodb		31	1.00
+dns-terror-map			32	1.03
+dns-terror-skiplist-nodb	33	1.06
+dns-terror-skiplist		43	1.39
+niced dns-terror-btree		145	4.68
+dns-terror-btree		177	5.71
+DNSlookups			221	7.13
+dns-terror-hash			234	7.55
+dns-terror1.2			315	10.16
+
+resolving with local cache and rewriting:
+
+dns-terror-map			64	2.06	1.00
+dns-terror-skiplist-nodb	64	2.06	1.00
+dns-terror-skiplist		64	2.06	1.00
+dns-terror-map-nodb		66	2.13	1.03
+dns-terror-btree		228	7.35	3.56
+dns-terror-hash			266	8.58	4.16
+logresolve.pl			618	19.94	9.66
+logresolve			3225	104.03	50.39
+
+Tests were run on an unloaded Pentium Pro 200 with 512MB RAM running
+BSD/OS 3.1.
+
+cat /etc/resolv.conf
+domain web.us.uu.net
+search web.us.uu.net va.pubnix.com
+nameserver 127.0.0.1
+nameserver 198.6.1.2
+nameserver 198.6.1.3
+nameserver 198.6.1.1
+
+cat /opt/reports/db/resolv.conf 
+nameserver 198.6.1.2
+nameserver 198.6.1.3
+nameserver 198.6.1.1
+
+unlimit
+
+gtime wc access.log 
+  301448 4677785 46916439 access.log
+6.55user 0.79system 0:07.37elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+2outputs (0major+0minor)pagefaults 0swaps
+
+## Resolving and rewriting (filtering) logs.
+
+gtime dns-terror -o -d remote.db -m5000 -p300 -c 'include /opt/reports/db/resolv.conf' < access.log > dns-terror.remote
+301448 addresses, 9206 (3.05%) queried, 0 invalid
+79.57user 29.36system 27:09.79elapsed 6%CPU (0avgtext+0avgdata 0maxresident)k
+543inputs+15146outputs (0major+0minor)pagefaults 0swaps
+[mean of 9 outstanding queries per mark]
+
+gtime dns-terror -o -d local.db -m5000 -p300 -c 'nameserver 127.0.0.1' < access.log > dns-terror.local
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+81.18user 30.54system 44:08.94elapsed 4%CPU (0avgtext+0avgdata 0maxresident)k
+757inputs+15308outputs (0major+0minor)pagefaults 0swaps
+[mean of 9 outstanding queries per mark]
+
+gtime dns-terror -o -d remote6000.db -m5000 -p300 -c 'include /opt/reports/db/resolv.conf' < access.log > dns-terror.remote6000
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+82.39user 32.81system 13:27.19elapsed 14%CPU (0avgtext+0avgdata 0maxresident)k
+760inputs+15296outputs (0major+0minor)pagefaults 0swaps
+[mean of 190 outstanding queries per mark]
+
+gtime dns-terror -o -d remote10000.db -m5000 -p5000 -c 'include /opt/reports/db/resolv.conf' < access.log > dns-terror.remote10000
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+82.56user 34.73system 9:33.86elapsed 20%CPU (0avgtext+0avgdata 0maxresident)k
+762inputs+15458outputs (0major+0minor)pagefaults 0swaps
+[mean of 315 outstanding queries per mark]
+
+gtime dns-terror -o -d remote20000.db -m5000 -p1000 -c 'include /opt/reports/db/resolv.conf' < access.log > dns-terror.remote20000
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+85.25user 34.95system 7:46.14elapsed 25%CPU (0avgtext+0avgdata 0maxresident)k
+759inputs+15637outputs (0major+0minor)pagefaults 0swaps
+[mean of 620 outstanding queries per mark]
+
+gtime dns-terror -o -d remote50000.db -m5000 -p2500 -c 'include /opt/reports/db/resolv.conf' < access.log > dns-terror.remote50000
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+96.12user 34.46system 4:25.87elapsed 49%CPU (0avgtext+0avgdata 0maxresident)k
+315inputs+15216outputs (0major+0minor)pagefaults 0swaps
+[mean of 1473 outstanding queries per mark]
+
+gtime dns-terror-btree -o -d remote-btree.db -m250 -p50000 -c 'include /opt/reports/db/resolv.conf' < access.log > dns-terror.remote-btree
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+36.38user 27.14system 3:47.58elapsed 27%CPU (0avgtext+0avgdata 0maxresident)k
+763inputs+14813outputs (0major+0minor)pagefaults 0swaps
+[mean of 1473 outstanding queries per mark]
+
+# btree version, udpmaxretries:5, DB buffer cache of 2Mb, SkipList.
+gtime dns-terror -o -m5000  -d skiplist2.db -c "include /opt/reports/db/resolv.conf" < access.log > dns-terror.skiplist2
+301448 entries, 9578 (3.18%) queried, 0 invalid
+24.67user 5.36system 1:04.18elapsed 46%CPU (0avgtext+0avgdata 0maxresident)k
+554inputs+83outputs (0major+0minor)pagefaults 0swaps
+
+# btree version, udpmaxretries:5, DB buffer cache of 2Mb, SkipList.
+# No DB file.
+gtime dns-terror -o -m5000  -d '' -c "include /opt/reports/db/resolv.conf" < access.log > dns-terror.nodb
+301448 entries, 9578 (3.18%) queried, 0 invalid
+23.88user 5.81system 1:03.68elapsed 46%CPU (0avgtext+0avgdata 0maxresident)k
+545inputs+61outputs (0major+0minor)pagefaults 0swaps
+
+# btree version, udpmaxretries:5, DB buffer cache of 2Mb, STL map.
+gtime dns-terror -o -m5000 -d map-deque2.db -c "include /opt/reports/db/resolv.conf" < access.log > dns-terror.map-deque2
+301448 entries, 9578 (3.18%) queried, 0 invalid
+19.59user 5.14system 1:03.86elapsed 38%CPU (0avgtext+0avgdata 0maxresident)k
+557inputs+73outputs (0major+0minor)pagefaults 0swaps
+
+# btree version, udpmaxretries:5, DB buffer cache of 2Mb, STL map.
+# No DB file.
+gtime dns-terror -o -m5000 -d '' -c "include /opt/reports/db/resolv.conf" < access.log > dns-terror.map-deque6       
+301448 entries, 9578 (3.18%) queried, 0 invalid
+19.87user 5.43system 1:05.60elapsed 38%CPU (0avgtext+0avgdata 0maxresident)k
+746inputs+54outputs (0major+0minor)pagefaults 0swaps
+
+gtime dns-terror -o -d remote50000-5.db -m5000 -p2500 -c 'include /opt/reports/db/resolv.conf
+options udpmaxretries:5' < access.log > dns-terror.remote50000-5
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+129.69user 25.05system 4:58.37elapsed 51%CPU (0avgtext+0avgdata 0maxresident)k
+767inputs+12494outputs (0major+0minor)pagefaults 0swaps
+[mean of 1473 outstanding queries per mark]
+
+gtime dns-terror -o -d remote100000.db -m5000 -p5000 -c 'include /opt/reports/db/resolv.conf' < access.log > dns-terror.remote100000
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+113.34user 30.98system 4:42.90elapsed 51%CPU (0avgtext+0avgdata 0maxresident)k
+665inputs+14700outputs (0major+0minor)pagefaults 0swaps
+[mean of 2678 outstanding queries per mark]
+
+gtime dns-terror -o -d remote-jeeves.db -m5000 -p2500 -c 'nameserver 208.240.88.4' < access.log > dns-terror.remote-jeeves
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+103.09user 30.68system 4:58.43elapsed 44%CPU (0avgtext+0avgdata 0maxresident)k
+757inputs+14826outputs (0major+0minor)pagefaults 0swaps
+[mean of 1473 outstanding queries per mark]
+
+gtime logresolve.pl < access.log > logresolve.pl.out
+42.01user 17.90system 10:18.11elapsed 9%CPU (0avgtext+0avgdata 0maxresident)k
+746inputs+977outputs (0major+0minor)pagefaults 0swaps
+
+gtime logresolve < access.log > logresolve.out
+9.08user 3.71system 53:44.64elapsed 0%CPU (0avgtext+0avgdata 0maxresident)k
+752inputs+428outputs (0major+0minor)pagefaults 0swaps
+
+## Producing an Analog DNS cache file.
+
+gtime convert-ip-db remote.db > remote.cache
+2.79user 0.12system 0:03.04elapsed 95%CPU (0avgtext+0avgdata 0maxresident)k
+4inputs+19outputs (0major+0minor)pagefaults 0swaps
+
+## Only resolving to a database, no rewrites.
+
+gtime dns-terror -d nowrite.db -m5000 -p2500 < access.log
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+75.78user 23.21system 3:54.06elapsed 42%CPU (0avgtext+0avgdata 0maxresident)k
+732inputs+12532outputs (0major+0minor)pagefaults 0swaps
+[mean of 2245 outstanding queries per mark]
+
+gtime dns-terror-btree -d nowrite-btree.db -m5000 -p2500 < access.log  
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+22.44user 19.66system 2:56.62elapsed 23%CPU (0avgtext+0avgdata 0maxresident)k
+2inputs+13272outputs (0major+0minor)pagefaults 0swaps
+[mean of 2245 outstanding queries per mark]
+
+gtime dns-terror-btree -d nowrite-btree.db -m5000 -p2500 -c 'include /opt/reports/db/resolv.conf' < access.log
+301448 addresses, 9578 (3.18%) queried, 0 invalid
+23.10user 17.97system 2:54.37elapsed 23%CPU (0avgtext+0avgdata 0maxresident)k
+2inputs+13360outputs (0major+0minor)pagefaults 0swaps
+[mean of 2245 outstanding queries per mark]
+
+# As root.  btree version, udpmaxretries:5.
+gtime nice --15 dns-terror -m5000 -p2500 -d nice.db -c "include /opt/reports/db/resolv.conf" < access.log
+301448 entries, 9578 (3.18%) queried, 0 invalid
+17.44user 12.84system 2:35.46elapsed 19%CPU (0avgtext+0avgdata 0maxresident)k
+318inputs+12943outputs (0major+0minor)pagefaults 0swaps
+[mean of 2245 outstanding queries per mark]
+
+# As root.  btree version, udpmaxretries:5, DB buffer cache of 20Mb.
+gtime nice --15 dns-terror -m5000 -p2500 -d nice.db -c "include /opt/reports/db/resolv.conf" < access.log
+301448 entries, 9578 (3.18%) queried, 0 invalid
+17.71user 12.30system 2:27.68elapsed 20%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+12926outputs (0major+0minor)pagefaults 0swaps
+
+# btree version, udpmaxretries:5, DB buffer cache of 20Mb.
+# Ensuring that DB file is held entirely in memory.
+gtime dns-terror -m5000 -p2500 -d '' nice.db -c "include /opt/reports/db/resolv.conf" < access.log
+301448 entries, 9578 (3.18%) queried, 0 invalid
+22.99user 19.05system 2:34.44elapsed 27%CPU (0avgtext+0avgdata 0maxresident)k
+25inputs+13405outputs (0major+0minor)pagefaults 0swaps
+
+# btree version, udpmaxretries:5, DB buffer cache of 2Mb, SkipList.
+gtime dns-terror -m5000 -p2500 -d skiplist.db -c "include /opt/reports/db/resolv.conf" < access.log
+301448 entries, 9578 (3.18%) queried, 0 invalid
+18.35user 5.63system 0:42.98elapsed 55%CPU (0avgtext+0avgdata 0maxresident)k
+727inputs+18outputs (0major+0minor)pagefaults 0swaps
+[mean of 2245 outstanding queries per mark]
+
+# btree version, udpmaxretries:5, DB buffer cache of 2Mb, STL map.
+gtime dns-terror -m5000 -p2500 -d map-deque.db -c "include /opt/reports/db/resolv.conf" < access.log 
+301448 entries, 9578 (3.18%) queried, 0 invalid
+19.09user 5.03system 0:31.83elapsed 75%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+22outputs (0major+0minor)pagefaults 0swaps
+
+# btree version, udpmaxretries:5, DB buffer cache of 2Mb, SkipList.
+# No DB file.
+gtime dns-terror -m5000 -p2500 -d '' -c "include /opt/reports/db/resolv.conf" < access.log
+301448 entries, 9578 (3.18%) queried, 0 invalid
+20.59user 5.12system 0:33.30elapsed 77%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+3outputs (0major+0minor)pagefaults 0swaps
+
+# btree version, udpmaxretries:5, DB buffer cache of 2Mb, STL map.
+# No DB file.
+gtime dns-terror -m5000 -p2500 -d '' -c "include /opt/reports/db/resolv.conf" < access.log
+301448 entries, 9578 (3.18%) queried, 0 invalid
+19.00user 4.90system 0:31.31elapsed 76%CPU (0avgtext+0avgdata 0maxresident)k
+
+# A perl parallizing front-end to dns-terror:
+gtime teamresolve -p12 access.log
+22.65user 10.17system 0:47.28elapsed 69%CPU (0avgtext+0avgdata 0maxresident)k
+730inputs+636outputs (0major+0minor)pagefaults 0swaps
+
+gtime teamresolve -p5 access.log
+26.55user 9.25system 0:36.95elapsed 96%CPU (0avgtext+0avgdata 0maxresident)k
+1inputs+358outputs (0major+0minor)pagefaults 0swaps
+
+gtime teamresolve -p3 access.log
+27.81user 9.30system 0:37.45elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+1inputs+239outputs (0major+0minor)pagefaults 0swaps
+
+gtime dns-terror1.1 < access.log 
+-- A total of 9578 [unique] requests have been seen.
+2778 unique requests, 74076 total requests, 3.7502% unique.
+Issued 6353 queries, avg of 2.2869 queries per request
+708 (25.486%) queries never answered.
+2810 unique requests, 91438 total requests, 3.07312% unique.
+Issued 6382 queries, avg of 2.27117 queries per request
+720 (25.6228%) queries never answered.
+3990 unique requests, 135934 total requests, 2.93525% unique.
+Issued 6361 queries, avg of 1.59424 queries per request
+227 (5.68922%) queries never answered.
+Had 0 bad lines
+167.55user 5.98system 5:20.06elapsed 54%CPU (0avgtext+0avgdata 0maxresident)k
+724inputs+6383outputs (0major+0minor)pagefaults 0swaps
+
+gtime dns-terror1.2 < access.log 
+-- A total of 9578 [unique] requests have been seen.
+2869 unique requests, 79400 total requests, 3.61335% unique.
+Issued 6452 queries, avg of 2.24887 queries per request
+700 (24.3987%) queries never answered.
+2921 unique requests, 93083 total requests, 3.13806% unique.
+Issued 6445 queries, avg of 2.20644 queries per request
+679 (23.2455%) queries never answered.
+3788 unique requests, 128965 total requests, 2.93723% unique.
+Issued 6390 queries, avg of 1.68691 queries per request
+222 (5.86061%) queries never answered.
+Had 0 bad lines
+169.79user 7.19system 5:14.94elapsed 56%CPU (0avgtext+0avgdata 0maxresident)k
+731inputs+5625outputs (0major+0minor)pagefaults 0swaps
+
+gtime DNSlookups -tv -f access.log
+109.37user 60.22system 3:40.74elapsed 76%CPU (0avgtext+0avgdata 0maxresident)k
+804inputs+3962outputs (0major+0minor)pagefaults 0swaps
+
+## Rewriting from a database, no resolving.
+
+gtime dns-terror -o -d nowrite.db -m5000 < access.log > dns-terror.allcached
+301448 addresses, 0 (0.00%) queried, 0 invalid
+87.70user 17.05system 1:51.57elapsed 93%CPU (0avgtext+0avgdata 0maxresident)k
+615inputs+77outputs (0major+0minor)pagefaults 0swaps
+
+gtime rewrite_logs
+
+## With a larger file.
+
+gzcat http.07.gz | wc
+ 1739443 28175652 281360002
+
+# Rewriting.
+
+gtime dns-terror -m5000 -p1000 -d larger2.db -o -c "include /opt/reports/db/resolv.conf" < http.07 > dns-terror.larger2
+1739443 entries, 103768 (5.97%) queried, 0 invalid
+158.45user 40.37system 14:05.59elapsed 23%CPU (0avgtext+0avgdata 0maxresident)k
+4133inputs+464outputs (0major+0minor)pagefaults 0swaps
+
+gtime logresolve.pl < http.07 > logresolve.pl.larger
+250.84user 110.83system 2:33:27elapsed 3%CPU (0avgtext+0avgdata 0maxresident)k
+4522inputs+6814outputs (0major+0minor)pagefaults 0swaps
+
+# Not rewriting.
+
+gtime dns-terror -m5000 -d larger3.db -c "include /opt/reports/db/resolv.conf" < http.07
+1739443 entries, 103768 (5.97%) queried, 0 invalid
+105.50user 30.86system 3:36.58elapsed 62%CPU (0avgtext+0avgdata 0maxresident)k
+4337inputs+35outputs (0major+0minor)pagefaults 0swaps
+
+gtime dnslookups -tv -f http.07
+2658.34user 1583.31system 1:25:14elapsed 82%CPU (0avgtext+0avgdata 0maxresident)k
+4538inputs+84609outputs (0major+0minor)pagefaults 0swaps
+
+
+A second set of tests was run on a dual Pentium II 500 system with 640MB RAM,
+running BSD/OS 4.0.1.  This just compared dns-terror with the adnslogres
+program from adns 0.6.  Both were using their default query pipeline size.
+
+The input was the following apache log file:
+
+gtime wc http.21 
+   77221 1230677 13639264 http.21
+0.50user 0.14system 0:00.64elapsed 100%CPU (0avgtext+0avgdata 0maxresident)k
+2inputs+1outputs (0major+0minor)pagefaults 0swaps
+
+In wall clock time, dns-terror is 5-20 times as fast.
+The speed improvement would be even greater if dns-terror had a local cache
+DB file from which it could extract some answers from a previous run.
+
+gtime adnslogres < http.21 > adnslogres.out1
+14.97user 22.75system 4:02.40elapsed 15%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+74outputs (0major+0minor)pagefaults 0swaps
+
+gtime adnslogres < http.21 > adnslogres.out2
+28.64user 15.53system 9:19.85elapsed 7%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+124outputs (0major+0minor)pagefaults 0swaps
+
+gtime dns-terror -o -d '' -c "include /opt/reports/db/resolv.conf" < http.21 > dns-terror.out1
+77221 lines. 0 (0.00%) invalid addresses.
+1126 (1.46%) addresses queried, 1008 (89.52%) of those successful.
+1.31user 0.43system 0:32.60elapsed 5%CPU (0avgtext+0avgdata 0maxresident)k
+29inputs+22outputs (0major+0minor)pagefaults 0swaps
+
+gtime dns-terror -o -d '' < http.21 > dns-terror.out2
+77221 lines. 0 (0.00%) invalid addresses.
+1126 (1.46%) addresses queried, 1008 (89.52%) of those successful.
+1.25user 0.42system 1:05.43elapsed 2%CPU (0avgtext+0avgdata 0maxresident)k
+2inputs+28outputs (0major+0minor)pagefaults 0swaps
+
+## Effect of the -z option vs. gzipping the output, with -o.
+
+Run on a dual-Pentium II 500 with 640MB RAM running BSD/OS 4.0.1.
+Some of the runs were done with the machine idle; for others,
+one CPU was running analog at about 95% activity; the other CPU was
+nearly idle.  About 8 runs were made with various pipeline sizes, all
+with results similar to the following, showing a halving of wall clock time:
+
+root@smithers 51 $ gtime wc head.in
+ 1000000 17174356 248165443 head.in
+9.48user 2.56system 0:21.08elapsed 57%CPU (0avgtext+0avgdata 0maxresident)k
+3332inputs+2outputs (0major+0minor)pagefaults 0swaps
+
+gtime \
+dns-terror -d db1.db -o -m40000 -p 40000 -c 'nameserver 208.229.230.229
+options udpmaxretries:2 udpretryms:8000' < head.in > head.out1
+33.01user 13.40system 3:16.57elapsed 23%CPU (0avgtext+0avgdata 0maxresident)k
+3816inputs+3992outputs (0major+0minor)pagefaults 0swaps
+
+gtime gzip head.out1
+77.99user 1.99system 1:48.11elapsed 73%CPU (0avgtext+0avgdata 0maxresident)k
+3939inputs+489outputs (0major+0minor)pagefaults 0swaps
+
+gtime \
+dns-terror -d db2.db -z -o -m40000 -p 40000 -c 'nameserver 208.229.230.229
+options udpmaxretries:2 udpretryms:8000' < head.in > head.out2.gz
+124.38user 11.69system 2:23.36elapsed 94%CPU (0avgtext+0avgdata 0maxresident)k
+3801inputs+507outputs (0major+0minor)pagefaults 0swaps
+
+## Comparison with jdresolve 0.5.2
+## from http://www.jdrowell.com/Linux/Projects/jdresolve
+
+Run on the 1 million line log file used just above, configured with
+similar parameters.
+
+Added nameserver selection to jdresolve, to avoid getting the loopback
+nameserver:
+
+--- jdresolve   1999/08/22 13:34:08     1.1
++++ jdresolve   2000/01/19 09:21:46
+@@ -143,6 +143,8 @@
+ 
+ $opts{database} ne '' and (tie(%DB, 'DB_File', $opts{database}) or die "can't open database '$opts{database}'");
+ 
++$res->nameservers("208.229.230.229");
++
+ while (1) {
+        getlines();
+        $#lines == -1 and last;
+
+gtime dns-terror -p9000  -d '' -o -c 'nameserver 208.229.230.229
+options udpmaxretries:3 udpretryms:6000' < head.in > d.out2
+1000000 lines read.
+1 (0.00%) invalid addresses.
+36910 (3.69%) addresses were queried with DNS;
+26755 (72.49%) of those queries were successful.
+34.70user 9.48system 4:15.47elapsed 17%CPU (0avgtext+0avgdata 0maxresident)k
+3813inputs+3952outputs (0major+0minor)pagefaults 0swaps
+
+gtime jdresolve --timeout=16 --sockets=56 --linecache=180000 - < head.in > j.out
+     Total Lines: 1000000
+     Total Time : 00:12:20 (1351.35 lines/s)
+     Total Hosts: 41945
+  Resolved Hosts: 32438 (77.33%)
+Unresolved Hosts: 9507 (22.67%)
+Average DNS time: 0.5433s per request
+    Max DNS time: 44s (consider this value for your timeout)
+624.64user 30.90system 12:21.79elapsed 88%CPU (0avgtext+0avgdata 0maxresident)k
+3903inputs+4025outputs (0major+0minor)pagefaults 0swaps
+
+Very good for Perl; dns-terror is only about 3 times as fast,
+while using 1/4 the CPU.  They both had similar numbers of
+unresolved hosts, but they seem to count the total number of hosts
+differently.  dns-terror is right:
+
+awk '{print $1}' head.in | sort -u | wc
+   36911   36911  528377
+
+## Compare total running times including running Analog, to compare
+## rewriting logs to creating an Analog DNS cache file.
+
+Uses the same 1 million line file, gzipped.
+
+gzcat < head.in > head.long.gz
+
+1. No DNS cache file; log file must be rewritten.
+
+time gzcat head.long.gz |
+dns-terror -z -d db1.db -o -m18000 -p 9000 -c 'nameserver 208.229.230.229
+options udpmaxretries:2 udpretryms:8000' > head.medium.gz
+real    2m37.012s
+user    2m19.493s
+sys     0m16.167s
+95MB
+
+time gzcat head.medium.gz | analog -G +ganalog.medium.cfg > report.medium.html
+real    4m25.676s
+user    4m9.617s
+sys     0m9.009s
+40MB
+
+Total: real 7 minutes, 3 seconds.
+
+2. Analog DNS cache file, original log file containing IP addresses.
+
+time gzcat head.long.gz |
+dns-terror -d db2.db -m18000 -p 9000 -c 'nameserver 208.229.230.229
+options udpmaxretries:2 udpretryms:8000'
+real    1m7.566s
+user    0m44.599s
+sys     0m13.172s
+61MB
+
+time convert-ip-db db2.db > dns.cache
+real    0m5.239s
+user    0m4.821s
+sys     0m0.118s
+0.7MB
+
+time gzcat head.long.gz | analog -G +ganalog.long.cfg > report.long.html
+real    4m52.813s
+user    4m46.525s
+sys     0m4.863s
+43MB
+
+Total: real 6 minutes, 55 seconds.
+
+However, this is with a DNS cache file only for this file.
+The times building on an existing DNS cache file:
+
+1. No DNS cache file; log file must be rewritten.
+
+real    3m53.110s
+user    2m32.865s
+sys     0m15.601s
+
+real    4m7.855s
+user    4m3.516s
+sys     0m7.188s
+
+Total: real 8 minutes, 1 second.
+
+2. Analog DNS cache file, original log file containing IP addresses.
+
+real    2m27.040s
+user    1m2.219s
+sys     0m13.837s
+
+real    1m45.275s
+user    1m28.355s
+sys     0m0.743s
+
+real    4m14.068s
+user    4m9.157s
+sys     0m7.295s
+
+Total: real 8 minutes, 27 seconds.

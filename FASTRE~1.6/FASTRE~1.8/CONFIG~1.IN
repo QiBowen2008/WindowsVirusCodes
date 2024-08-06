@@ -1,0 +1,68 @@
+AC_INIT
+AM_INIT_AUTOMAKE([fastresolve], [2.8])
+AC_ARG_PROGRAM
+AC_PATH_PROGS(PERL, [perl5 perl], [/usr/bin/perl])
+AC_PROG_CC
+AC_PROG_CXX
+AC_CHECK_FUNCS(fgetln)
+
+# The following macro is
+#    Copyright (C) 1997-1999 Ian Jackson <ian@davenant.greenend.org.uk>
+# distributed under the GNU GPL (v2+).
+AC_DEFUN(ADNS_C_GETFUNC,[
+ AC_CHECK_FUNC([$1],,[
+  AC_CHECK_LIB([$2],[$1],[$3],[
+    AC_MSG_ERROR([cannot find library function $1])
+  ])
+ ])
+])
+
+ADNS_C_GETFUNC(socket,socket)
+ADNS_C_GETFUNC(inet_ntoa,nsl)
+ADNS_C_GETFUNC(inet_aton,resolv,[LIBS="-lresolv $LIBS"])
+AC_CHECK_LIB(z, gzprintf, , AC_MSG_ERROR([zlib including gzprintf is required]))
+AC_CHECK_LIB(adns, adns_submit, , AC_MSG_ERROR([adns library is required]))
+
+AC_DEFUN(DJM_LIB_DB_CXX,
+[dnl Check for a C++ interface, either version.
+
+dnl 2.x.
+AC_CACHE_CHECK([for Db::open in -ldb], djm_cv_lib_db_Dbopen,
+[AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+djm_save_LIBS="$LIBS"
+LIBS="$LIBS -ldb"
+AC_TRY_LINK([#include <db_cxx.h>], [Db::open(NULL, DB_BTREE, DB_CREATE, 0, NULL, NULL, NULL);],
+	djm_cv_lib_db_Dbopen=yes, djm_cv_lib_db_Dbopen=no)
+LIBS="$djm_save_LIBS"
+AC_LANG_RESTORE])
+
+if test $djm_cv_lib_db_Dbopen = yes; then
+	LIBS="$LIBS -ldb"
+else
+
+dnl 3.x.
+AC_CACHE_CHECK([for Db::open in -ldb_cxx], djm_cv_lib_db_cxx_Dbopen,
+[AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+djm_save_LIBS="$LIBS"
+LIBS="$LIBS -ldb -ldb_cxx"
+AC_TRY_LINK([#include <db_cxx.h>], [Db *d = new Db(NULL, 0);
+d->open(NULL, NULL, DB_BTREE, DB_CREATE, 0);],
+	djm_cv_lib_db_cxx_Dbopen=yes, djm_cv_lib_db_cxx_Dbopen=no)
+LIBS="$djm_save_LIBS"
+AC_LANG_RESTORE])
+
+if test $djm_cv_lib_db_cxx_Dbopen = yes; then
+	LIBS="$LIBS -ldb -ldb_cxx"
+else
+	AC_MSG_ERROR([Berkeley DB library 2.x or 3.x configured with --enable-cxx is required])
+fi
+fi])
+
+DJM_LIB_DB_CXX
+
+AC_OUTPUT(Makefile dns-terror/Makefile modules/Makefile scripts/Makefile
+          scripts/btree-dump scripts/convert-dom-db scripts/convert-ip-db
+          scripts/expire-ip-db scripts/getdominfo scripts/rebuild-dom-db
+          scripts/rebuild-ip-db scripts/reresolve scripts/make-report)

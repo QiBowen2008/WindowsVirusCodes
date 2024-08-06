@@ -1,0 +1,84 @@
+#!@PERL@
+# Remove entries older than a given time from
+# a DB file produced by dns-terror.
+#
+# Written by David MacKenzie <djm@web.us.uu.net>
+# Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.
+
+##############################################################################
+#   Copyright 1999 UUNET, an MCI WorldCom company.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+# 02111-1307, USA.
+##############################################################################
+
+use DB_File;
+use Fcntl;
+use File::Basename;
+use Time::localtime;
+use Getopt::Std;
+
+use vars qw($opt_d $opt_m $opt_v);
+
+main();
+exit(0);
+
+sub main
+{
+    my(%input, $dbfile, %output, $path, $newfile,
+     $days, $timestamp, $deltime, $ipaddr, $data, $domain, $expired, $total);
+
+    getopts("d:m:v") || die "Usage: $0 [-v] [-d days] [-m mark-size] [ip2host.db]\n";
+    $days = $opt_d || 35;	# Long enough to last to the next monthly report.
+    $deltime = time - $days * (60 * 60 * 24);
+    $dbfile = shift @ARGV || "ip2host.db";
+    $path = (fileparse($dbfile, ".db"))[1];
+    $newfile = "${path}tmphost.db";
+    unlink $newfile;
+    $| = 1;			# Instant gratification if output is logged.
+
+    tie(%input, "DB_File", $dbfile, O_RDWR, 0640, $DB_BTREE)
+	|| die "$0: Can't tie $dbfile: $!\n";
+    tie(%output, "DB_File", $newfile, O_RDWR|O_CREAT|O_EXCL, 0640, $DB_BTREE)
+	|| die "$0: Can't tie $newfile: $!\n";
+
+    $expired = $total = 0;
+    # We copy to a new file because deleting while walking the btree
+    # sometimes causes the DB library to SEGV.
+    while (($ipaddr, $data) = each(%input)) {
+	($timestamp, $domain) = unpack("IA*", $data);
+	if ($timestamp < $deltime) {
+	    print "deleting ", ctime($timestamp), " $ipaddr $domain\n"
+		if $opt_v;
+	    $expired++;
+	} else {
+	    $output{$ipaddr} = $data;
+	}
+	$total++;
+
+	if ($opt_m and $total % $opt_m == 0) {
+	    print "$total entries checked\n";
+	}
+    }
+    
+    print "Finished expiring, renaming $newfile to $dbfile\n" if $opt_v;
+    untie(%input);
+    untie(%output);
+    rename($newfile, $dbfile)
+	|| die "$0: Can't rename $newfile to $dbfile: $!\n";
+
+    printf("Expired $expired of $total (%.2f%%) entries.\n",
+	   $total ? ((100.0 * $expired) / (1.0 * $total)) : 0);
+}

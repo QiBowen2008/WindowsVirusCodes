@@ -1,0 +1,64 @@
+#!@PERL@
+# Convert IP address to domain mappings from a DB file
+# into an Analog DNS cache file.
+# The DB file was produced by dns-terror.
+# Output is to stdout, which should be saved in the file dns.cache
+# and sourced in Analog config files with:
+# DNS READ
+# DNSFILE dns.cache
+# # 1008 is (35+7)*24, one week past the expire-ip-db default.
+# DNSGOODHOURS 1008
+# DNSBADHOURS 1008
+#
+# Written by Chris Ross <cross@eng.us.uu.net>
+# and David MacKenzie <djm@web.us.uu.net>
+# Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.
+
+##############################################################################
+#   Copyright 1999 UUNET, an MCI WorldCom company.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+# 02111-1307, USA.
+##############################################################################
+
+use DB_File;
+use Fcntl;
+
+main();
+exit(0);
+
+sub main
+{
+    my(%input, $dbfile, $timestamp, $timecode, $ipaddr, $domain);
+
+    $dbfile = shift @ARGV || "ip2host.db";
+
+    tie(%input, "DB_File", $dbfile, O_RDONLY, 0640, $DB_BTREE)
+	|| die "$0: Can't read $dbfile: $!\n";
+    
+    while (($ipaddr, $domain) = each(%input)) {
+	($timestamp, $domain) = unpack("IA*", $domain);
+
+	$domain ||= "*";
+
+	# We write the timecode in GMT, which the next release of
+	# Analog will do, too.  Being a few hours off doesn't matter,
+	# anyway; it's just used for expiring old entries.
+	$timecode = int(($timestamp / 60) + (24 * 60));
+	print "$timecode $ipaddr $domain\n";
+    }
+    
+    untie(%input);
+}

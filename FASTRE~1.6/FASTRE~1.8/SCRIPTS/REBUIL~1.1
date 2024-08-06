@@ -1,0 +1,21 @@
+.TH REBUILD-DOM-DB 1 "August 1999" Fastresolve
+.SH NAME
+rebuild-dom-db \- recreate an IP address to hostname DB file
+.SH SYNOPSIS
+.B rebuild-dom-db
+dominfo.db < subdomains.cfg
+.SH DESCRIPTION
+.B rebuild-dom-db
+recreates a DB file compatible with that produced by
+.B getdominfo
+from the (ASCII) output of
+.BR convert-dom-db .
+It is mostly useful for disaster recovery.  Since the output of
+.B convert-dom-db
+does not include negative cache entries, they will also not be present
+in the reconstructed DB file.
+.SH "SEE ALSO"
+convert-dom-db(1), dns-terror(1), rebuild-ip-db(1), db_intro(3)
+.SH AUTHORS
+David MacKenzie <djm@web.us.uu.net>.
+Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.

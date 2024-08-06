@@ -1,0 +1,18 @@
+.TH REBUILD-IP-DB 1 "August 1999" Fastresolve
+.SH NAME
+rebuild-ip-db \- recreate an IP address to hostname DB file
+.SH SYNOPSIS
+.B rebuild-ip-db
+ip2host.db < dns.cache
+.SH DESCRIPTION
+.B rebuild-ip-db
+recreates a DB file compatible with that produced by
+.B dns-terror
+from the (ASCII) output of
+.BR convert-ip-db .
+It is mostly useful for disaster recovery.
+.SH "SEE ALSO"
+convert-ip-db(1), dns-terror(1), rebuild-dom-db(1), db_intro(3)
+.SH AUTHORS
+David MacKenzie <djm@web.us.uu.net>.
+Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.

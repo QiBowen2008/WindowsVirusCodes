@@ -1,0 +1,33 @@
+.TH EXPIRE-IP-DB 1 "August 1999" Fastresolve
+.SH NAME
+expire-ip-db \- remove old entries from a dns-terror DB file
+.SH SYNOPSIS
+.B expire-ip-db
+[\-v] [\-d days] [\-m mark-size] [ip2host.db]
+.SH DESCRIPTION
+.B expire-ip-db
+removes entries older than a given time from
+a DB file produced by
+.BR dns-terror .
+This keeps the DB file from growing without bounds.  If this were not
+done, then eventually the overhead of storing months' worth of IP
+address to hostname mappings could become greater than the speed
+benefit from having them available, and the memory image of
+.B dns-terror
+could become unworkably large.
+.SH OPTIONS
+.IP "\-d days"
+Remove entries older than days.  Default is 35 days, which is long
+enough for daily entries to last to the next monthly report.
+.IP "\-m marksize"
+Print a notice every marksize entries.
+.IP \-v
+Verbose: print progress messages.
+.SH FILES
+.IP ip2host.db
+Default DB file to process.
+.SH "SEE ALSO"
+convert-ip-db(1), dns-terror(1), db_intro(3)
+.SH AUTHORS
+David MacKenzie <djm@web.us.uu.net>.
+Please send comments and bug reports to fastresolve-bugs@web.us.uu.net.
